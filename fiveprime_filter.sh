@@ -12,5 +12,3 @@ gtftk select_by_tx_size -i rmsk.hg38.subsample.featsize.gtf -o rmsk.hg38.subsamp
 
 
 #Turn into bed file
-
-
