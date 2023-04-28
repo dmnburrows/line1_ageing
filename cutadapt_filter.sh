@@ -14,3 +14,7 @@ err=$7 # maximum error rate
 cutadapt -g $TSO -G $TSO --overlap $ov --pair-filter=both --discard-untrimmed -e $err -o $out_r1 -p $out_r2 $in_r1 $in_r2 
 
 
+log=$(basename $i)_trimming.log
+
+trim_galore --cores 4 --paired --clip_R1 3 -q 20 --fastqc_args "-noextract"
+ $i $j -o $outdir > $log 2>&1
