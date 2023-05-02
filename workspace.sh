@@ -3,27 +3,18 @@
 str=$1
 
 #Define paths and variables
-datapath=$pe_rna_fa
-outpath=/cndd3/dburrows/DATA/te/rna/PE.fastq/merged/
-id=$(find $datapath/ -maxdepth 1 -name "*$str*")
-id_arr=($id)
+inpath=$DATA3/te/rna/PE.fastq/merged/
+outpath=/cndd3/dburrows/DATA/te/rna/PE.fastq/trimmed
+id_arr=($(find $inpath/ -maxdepth 1 -name "*Sample*$str*"))
 
 #Loop over each sample
 for i in ${id_arr[@]}
 do
-
     echo $i
-    R1=$(ls $(find $i/fastq/ -maxdepth 1 -name "*R1*"))
-    R2=$(ls $(find $i/fastq/ -maxdepth 1 -name "*R2*"))
-    R1_arr=($R1)
-    R2_arr=($R2)
-    echo ${R1_arr[0]} ${R1_arr[1]} 
-    echo ${R2_arr[0]} ${R2_arr[1]} 
+    read_a=($(ls $i))
+    $CODE3/te_ageing/trim_galore.sh 8 3 20 0.1 $i/${read_a[0]} $i/${read_a[1]} $outpath/$(basename $i)
+    cp $CODE3/te_ageing/workspace.sh $outpath/$(basename $i)/log.workspace
+    cp $CODE3/te_ageing/trim_galore.sh $outpath/$(basename $i)/log.trim_galore
 
-    # # #concatenate lanes together for each read
-    sample=$(basename $i) 
-    mkdir $outpath/$sample
-    cat  ${R1_arr[0]} ${R1_arr[1]}  > $outpath/$sample/R1-merge.fastq.qz
-    cat  ${R2_arr[0]} ${R2_arr[1]}  > $outpath/$sample/R2-merge.fastq.qz
 done
 
