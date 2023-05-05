@@ -13,15 +13,17 @@ def find_intersect(bam_remaining, chr_bed, flat_bed_pos, flat_bed_ind):
     flat_bed_ind: flattened vector of indeces for each region that maps it back onto the original chr bed file
 
     Outputs:
-    umi_v: vector of UMIs that overlap with flattened bed
-    bedind_v: vector of indeces in original bed file where umi_v reads have aligned
-    ind_v: vector of indeces of original bam file where reads have aligned
+    umi: vector of UMIs that overlap with flattened bed
+    bedind: vector of indeces in original bed file where umi_v reads have aligned
+    ind: vector of pd row indeces of original bam file where reads have aligned
 
     """
-    _int = np.intersect1d(bam_remaining['Start'].values, flat_bed_pos, return_indices=True)  #Find indeces (in the bam file of 5' aligned reads only) of reads whose tss overlaps with flattened bed vector
-    umi_v = bam_remaining['UMI'].iloc[_int[1]].values #vector of UMIs that overlap with flattened bed
-    bedind_v = chr_bed.iloc[flat_bed_ind[_int[2]]].index.values #vector of indeces in original bed file where umi_v reads have aligned
-    ind_v = bam_remaining.index[_int[1]].values #vector of indeces of original bam file where reads have aligned
-    assert len(umi_v) == len(bedind_v), 'Bam and bed slices not the same length'
+    import numpy as np
 
-    return(umi_v, bedind_v, ind_v)
+    _int = np.intersect1d(bam_remaining['Start'].values, flat_bed_pos, return_indices=True)  #Find indeces (in the bam file of 5' aligned reads only) of reads whose tss overlaps with flattened bed vector
+    umi = bam_remaining['UMI'].iloc[_int[1]].values #vector of UMIs that overlap with flattened bed
+    bedind = flat_bed_ind[_int[2]] #vector of indeces in original bed file where umi_v reads have aligned
+    ind = bam_remaining.index[_int[1]].values #vector of indeces of original bam file where reads have aligned
+    assert len(umi) == len(bedind), 'Bam and bed slices not the same length'
+
+    return(umi, bedind, ind)
