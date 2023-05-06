@@ -16,7 +16,7 @@ do
     mkdir $outpath/$(basename $i)
     cd $outpath/$(basename $i)
 
-    STAR --genomeDir /cndd3/dburrows/DATA/te/gtf//annotations/gencode/STAR.gencode.v37 --readFilesIn $r1 $r2 --outSAMunmapped None --outFilterType BySJout --outSAMattributes All --outFilterMultimapNmax 100 --outFilterMismatchNmax 999 --outFilterMismatchNoverReadLmax 0.04 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000 --alignSJoverhangMin 8 --alignSJDBoverhangMin 1 --sjdbScore 1 --readFilesCommand zcat --runThreadN 16 --genomeLoad LoadAndKeep --limitBAMsortRAM 10000000000 --outSAMtype BAM SortedByCoordinate --quantMode TranscriptomeSAM GeneCounts --winAnchorMultimapNmax 200 --outMultimapperOrder Random --outSAMmultNmax -1 
+    STAR --genomeDir /cndd3/dburrows/DATA/te/gtf/genome/STAR.hg38.gencode_v37 --readFilesIn $r1 $r2 --outSAMunmapped None --outFilterType BySJout --outSAMattributes All --outFilterMultimapNmax 100 --outFilterMismatchNmax 999 --outFilterMismatchNoverReadLmax 0.04 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000 --alignSJoverhangMin 8 --alignSJDBoverhangMin 1 --sjdbScore 1 --readFilesCommand zcat --runThreadN 16 --genomeLoad LoadAndKeep --limitBAMsortRAM 10000000000 --outSAMtype BAM SortedByCoordinate --quantMode TranscriptomeSAM GeneCounts --winAnchorMultimapNmax 200 --outMultimapperOrder Random --outSAMmultNmax -1 
     samtools index Aligned.sortedByCoord.out.bam
     cp $CODE3/te_ageing/workspace.sh $outpath/$(basename $i)/log.workspace
 done
