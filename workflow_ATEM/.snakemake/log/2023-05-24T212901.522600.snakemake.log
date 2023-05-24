@@ -1,0 +1,3 @@
+Building DAG of jobs...
+MissingRuleException:
+No rule to produce /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/{sample}/plus.bam,/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/{sample}/minus.bam, (if you use input functions make sure that they don't raise unexpected exceptions).

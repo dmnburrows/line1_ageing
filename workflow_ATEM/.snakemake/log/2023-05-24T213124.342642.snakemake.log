@@ -1,0 +1,7 @@
+Building DAG of jobs...
+MissingInputException in rule split_count_reads in file /cndd3/dburrows/CODE/te_ageing/workflow_ATEM/Snakefile, line 10:
+Missing input files for rule split_count_reads:
+    output: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/{sample}/plus.bam, /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/{sample}/minus.bam
+    wildcards: sample={sample}
+    affected files:
+        /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/{sample}/Aligned.sortedByCoord.out.bam

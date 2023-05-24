@@ -1,0 +1,62 @@
+rule all:
+    input:
+        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/total_reads.txt",
+        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.5pfilt.metadata.txt",
+        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.5pfilt.metadata.txt"
+
+#Count total reads in bam file
+#==============================
+rule count_reads:
+#==============================
+    input:
+        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/Aligned.sortedByCoord.out.bam"
+    output:
+        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/total_reads.txt"
+    shell:
+        "samtools view {input} | wc -l > {output}"
+
+#Split bam into forward and reverse strands
+#==========================================
+rule split_reads:
+#==========================================
+    input:
+        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/Aligned.sortedByCoord.out.bam"
+    output:
+        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.bam",
+        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.bam"
+    run:
+        shell("samtools view -h -F 0x10 {input} > {output.plus}"),
+        shell("samtools view -h -f 0x10 {input} > {output.minus}")
+
+
+#Filter bam files with TE bed file using samtools
+#==========================================
+rule samfilter_reads:
+#==========================================
+    input:
+        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.bam",
+        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.bam"
+    output:
+        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.5pfilt.bam",
+        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.5pfilt.bam"
+    run:
+        shell("samtools view -b -h -L /cndd3/dburrows/DATA/te/gtf/bed/rmsk.hg38.filt-5ptrim.plus.bed {input.plus} > {output.plus}")   
+        shell("samtools index {output.plus}")
+        shell("samtools view -b -h -L /cndd3/dburrows/DATA/te/gtf/bed/rmsk.hg38.filt-5ptrim.minus.bed {input.minus} > {output.minus}")
+        shell("samtools index {output.minus}")
+
+# Obtain metadata from filtered bam files for remapping after ATEM
+#============================================
+rule get_metadata:
+#============================================
+    input:
+        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.5pfilt.bam",
+        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.5pfilt.bam"
+    output:
+        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.5pfilt.metadata.txt",
+        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.5pfilt.metadata.txt"
+    run:
+        shell("samtools view {input.plus} | cut -f -9 > {output.plus} ")
+        shell("samtools view {input.minus} | cut -f -9 > {output.minus} ")
+
+
