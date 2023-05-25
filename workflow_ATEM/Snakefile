@@ -1,17 +1,22 @@
+configfile:
+    "config.json"
+
+#==============================
 rule all:
+#==============================
     input:
-        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/total_reads.txt",
-        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.5pfilt.metadata.txt",
-        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.5pfilt.metadata.txt"
+        count_mat=config['path']+"/prac.2/ATEM_counts.csv",
+        meta_pl_notin=config['path']+"/prac.2/plus.5pfilt-notin.metadata.txt",
+        meta_mi_notin=config['path']+"/prac.2/minus.5pfilt-notin.metadata.txt"
 
 #Count total reads in bam file
 #==============================
 rule count_reads:
 #==============================
     input:
-        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/Aligned.sortedByCoord.out.bam"
+        config['path']+"/prac.2/Aligned.sortedByCoord.out.bam"
     output:
-        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/total_reads.txt"
+        config['path']+"/prac.2/total_reads.txt"        
     shell:
         "samtools view {input} | wc -l > {output}"
 
@@ -20,10 +25,10 @@ rule count_reads:
 rule split_reads:
 #==========================================
     input:
-        "/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/Aligned.sortedByCoord.out.bam"
+        config['path']+"/prac.2/Aligned.sortedByCoord.out.bam"
     output:
-        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.bam",
-        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.bam"
+        plus=config['path']+"/prac.2/plus.bam",
+        minus=config['path']+"/prac.2/minus.bam"
     run:
         shell("samtools view -h -F 0x10 {input} > {output.plus}"),
         shell("samtools view -h -f 0x10 {input} > {output.minus}")
@@ -34,15 +39,15 @@ rule split_reads:
 rule samfilter_reads:
 #==========================================
     input:
-        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.bam",
-        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.bam"
+        plus=config['path']+"/prac.2/plus.bam",
+        minus=config['path']+"/prac.2/minus.bam"
     output:
-        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.5pfilt.bam",
-        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.5pfilt.bam"
+        plus=config['path']+"/prac.2/plus.5pfilt.bam",
+        minus=config['path']+"/prac.2/minus.5pfilt.bam"
     run:
-        shell("samtools view -b -h -L /cndd3/dburrows/DATA/te/gtf/bed/rmsk.hg38.filt-5ptrim.plus.bed {input.plus} > {output.plus}")   
+        shell("samtools view -b -h -L "+config['bed_plus_path']+" {input.plus} > {output.plus}")   
         shell("samtools index {output.plus}")
-        shell("samtools view -b -h -L /cndd3/dburrows/DATA/te/gtf/bed/rmsk.hg38.filt-5ptrim.minus.bed {input.minus} > {output.minus}")
+        shell("samtools view -b -h -L "+config['bed_minus_path']+" {input.minus} > {output.minus}")
         shell("samtools index {output.minus}")
 
 # Obtain metadata from filtered bam files for remapping after ATEM
@@ -50,13 +55,33 @@ rule samfilter_reads:
 rule get_metadata:
 #============================================
     input:
-        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.5pfilt.bam",
-        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.5pfilt.bam"
+        plus=config['path']+"/prac.2/plus.5pfilt.bam",
+        minus=config['path']+"/prac.2/minus.5pfilt.bam"
     output:
-        plus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.5pfilt.metadata.txt",
-        minus="/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.5pfilt.metadata.txt"
+        plus=config['path']+"/prac.2/plus.5pfilt.metadata.txt",
+        minus=config['path']+"/prac.2/minus.5pfilt.metadata.txt"
     run:
         shell("samtools view {input.plus} | cut -f -9 > {output.plus} ")
         shell("samtools view {input.minus} | cut -f -9 > {output.minus} ")
 
+#Active Transposable Element Mapping 
+# This rule will run the ATEM pipeline which returns counts of putatively 
+# active TEs based on 5'alignment at 5' end
+#============================================
+rule ATEM:
+#============================================
+    input:
+        bam_pl=config['path']+"/prac.2/plus.5pfilt.bam",
+        bam_mi=config['path']+"/prac.2/minus.5pfilt.bam",
+        meta_pl=config['path']+"/prac.2/plus.5pfilt.metadata.txt",
+        meta_mi=config['path']+"/prac.2/minus.5pfilt.metadata.txt",
+        n_reads=config['path']+"/prac.2/total_reads.txt"        
+    output:
+        count_mat=config['path']+"/prac.2/ATEM_counts.csv",
+        meta_pl_notin=config['path']+"/prac.2/plus.5pfilt-notin.metadata.txt",
+        meta_mi_notin=config['path']+"/prac.2/minus.5pfilt-notin.metadata.txt"
 
+    conda:
+        "ATEM.yaml"
+    notebook:
+        "ATEM.py"

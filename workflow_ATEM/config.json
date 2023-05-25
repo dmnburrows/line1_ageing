@@ -1,0 +1,7 @@
+{
+
+    "path":"/cndd3/dburrows/DATA/te/rna/filt.prac/snakemake",
+    "bed_plus_path":"/cndd3/dburrows/DATA/te/gtf/bed/rmsk.hg38.filt-5ptrim.plus.sort.bed",
+    "bed_minus_path":"/cndd3/dburrows/DATA/te/gtf/bed/rmsk.hg38.filt-5ptrim.minus.sort.bed"
+    
+}

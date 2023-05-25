@@ -1,0 +1,43 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 2
+Rules claiming more threads will be scaled down.
+Job stats:
+job                count    min threads    max threads
+---------------  -------  -------------  -------------
+all                    1              1              1
+count_reads            1              1              1
+get_metadata           1              1              1
+samfilter_reads        1              1              1
+split_reads            1              1              1
+total                  5              1              1
+
+Select jobs to execute...
+
+[Thu May 25 01:08:28 2023]
+rule split_reads:
+    input: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/Aligned.sortedByCoord.out.bam
+    output: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.bam, /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.bam
+    jobid: 4
+    reason: Missing output files: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/plus.bam, /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/minus.bam
+    resources: tmpdir=/tmp
+
+[Thu May 25 01:08:28 2023]
+rule count_reads:
+    input: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/Aligned.sortedByCoord.out.bam
+    output: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/total_reads.txt
+    jobid: 1
+    reason: Missing output files: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/total_reads.txt
+    resources: tmpdir=/tmp
+
+Terminating processes on user request, this might take some time.
+[Thu May 25 01:08:49 2023]
+Error in rule count_reads:
+    jobid: 1
+    input: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/Aligned.sortedByCoord.out.bam
+    output: /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/total_reads.txt
+    shell:
+        samtools view /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/Aligned.sortedByCoord.out.bam | wc -l > /cndd3/dburrows/DATA/te/rna/filt.prac/snakemake/prac.2/total_reads.txt
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Complete log: .snakemake/log/2023-05-25T010821.006902.snakemake.log
