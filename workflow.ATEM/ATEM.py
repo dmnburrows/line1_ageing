@@ -5,6 +5,7 @@ import json
 import pandas as pd
 import pyranges as pr
 import sys
+import numpy as np
 
 #Import your modules
 #---------------------------------------
@@ -60,7 +61,7 @@ for x,par in enumerate(par_list):
         count_df, bam_ll[x] = te.five_prime_align(chr_bam, chr_bed, count_df, bam_ll[x])
 
 #Add in CPMs as a column
-total_reads = pd.read_csv(snakemake.inputs.n_reads, sep=" ", header=None)[0].values[0] 
+total_reads = pd.read_csv(snakemake.input.n_reads, sep=" ", header=None)[0].values[0] 
 count_df['CPM'] = count_df['Count'].values / total_reads * 1000000 
 
 #Save counts matrix
@@ -69,5 +70,5 @@ count_df.to_csv(snakemake.output.count_mat, sep='\t', index=False)
 #Make txt file of start sites to remove
 pl_umi=pd.read_csv(snakemake.input.meta_pl, sep='\t', header=None).iloc[np.setxor1d(np.arange(0,len(bam_pl)) , bam_ll[0].astype(int))]
 mi_umi=pd.read_csv(snakemake.input.meta_mi, sep='\t', header=None).iloc[np.setxor1d(np.arange(0,len(bam_mi)) , bam_ll[1].astype(int))]
-np.savetxt(snakemake.output.meta_pl,  pl_umi, fmt='%s')
-np.savetxt(snakemake.output.meta_mi,  mi_umi, fmt='%s')
+np.savetxt(snakemake.output.meta_pl_notin,  pl_umi, fmt='%s')
+np.savetxt(snakemake.output.meta_mi_notin,  mi_umi, fmt='%s')

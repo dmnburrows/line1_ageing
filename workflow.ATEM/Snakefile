@@ -6,8 +6,7 @@ rule all:
 #==============================
     input:
         count_mat=config['path']+"/prac.2/ATEM_counts.csv",
-        meta_pl_notin=config['path']+"/prac.2/plus.5pfilt-notin.metadata.txt",
-        meta_mi_notin=config['path']+"/prac.2/minus.5pfilt-notin.metadata.txt"
+        merge_bam=config['path']+"/prac.2/5pfilt-tss.bam"
 
 #Count total reads in bam file
 #==============================
@@ -83,5 +82,55 @@ rule ATEM:
 
     conda:
         "ATEM.yaml"
-    notebook:
+    script:
         "ATEM.py"
+
+#Filter 5p filt bam file by ATEM-based filtering to 
+#return sam file with only 5p filt at tss reads
+#============================================
+rule filter_bam_by_ATEM:
+#============================================
+    input:
+        plus=config['path']+"/prac.2/plus.5pfilt.bam",
+        minus=config['path']+"/prac.2/minus.5pfilt.bam",
+        meta_pl_notin=config['path']+"/prac.2/plus.5pfilt-notin.metadata.txt",
+        meta_mi_notin=config['path']+"/prac.2/minus.5pfilt-notin.metadata.txt"
+
+    output:
+        plus_sam=config['path']+"/prac.2/plus.5pfilt-tss.sam",
+        minus_sam=config['path']+"/prac.2/minus.5pfilt-tss.sam"
+
+    shell:
+        """
+        samtools view -h {input.plus} | awk 'NR==FNR{{a[$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9];next}} !($1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9 in a)' {input.meta_pl_notin} -> {output.plus_sam}
+        samtools view -h {input.minus} | awk 'NR==FNR{{a[$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9];next}} !($1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9 in a)' {input.meta_mi_notin} -> {output.minus_sam}
+        """
+
+
+#============================================
+rule sam_to_bam:
+#============================================
+    input:
+        plus_sam=config['path']+"/prac.2/plus.5pfilt-tss.sam",
+        minus_sam=config['path']+"/prac.2/minus.5pfilt-tss.sam"
+    output:
+        plus_bam=config['path']+"/prac.2/plus.5pfilt-tss.bam",
+        minus_bam=config['path']+"/prac.2/minus.5pfilt-tss.bam"
+    run:
+        shell("samtools view -S -b {input.plus_sam} > {output.plus_bam}")
+        shell("samtools view -S -b {input.minus_sam} > {output.minus_bam}")
+
+
+#============================================
+rule strand_merge_and_index:
+#============================================
+    input:
+        plus_bam=config['path']+"/prac.2/plus.5pfilt-tss.bam",
+        minus_bam=config['path']+"/prac.2/minus.5pfilt-tss.bam"
+    output:
+        merge_bam=config['path']+"/prac.2/5pfilt-tss.bam"
+    run:
+        shell("samtools merge -f {output.merge_bam} {input.plus_bam} {input.minus_bam}")
+        shell("samtools index {output.merge_bam}")
+
+

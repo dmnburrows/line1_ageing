@@ -1,3 +1,0 @@
-RuleException in file /cndd3/dburrows/CODE/te_ageing/workflow_ATEM/Snakefile, line 26:
-Conda environments are only allowed with shell, script, notebook, or wrapper directives (not with run or template_engine).
-  File "/cndd3/dburrows/CODE/te_ageing/workflow_ATEM/Snakefile", line 26, in <module>
