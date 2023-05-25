@@ -64,8 +64,9 @@ for x,par in enumerate(par_list):
 total_reads = pd.read_csv(snakemake.input.n_reads, sep=" ", header=None)[0].values[0] 
 count_df['CPM'] = count_df['Count'].values / total_reads * 1000000 
 
-#Save counts matrix
+#Save counts matrix and bam indeces
 count_df.to_csv(snakemake.output.count_mat, sep='\t', index=False)
+np.save(snakemake.output.bam_ind,bam_ll)
 
 #Make txt file of start sites to remove
 pl_umi=pd.read_csv(snakemake.input.meta_pl, sep='\t', header=None).iloc[np.setxor1d(np.arange(0,len(bam_pl)) , bam_ll[0].astype(int))]

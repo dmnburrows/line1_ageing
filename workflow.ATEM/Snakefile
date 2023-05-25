@@ -6,7 +6,9 @@ rule all:
 #==============================
     input:
         count_mat=config['path']+"/prac.2/ATEM_counts.csv",
-        merge_bam=config['path']+"/prac.2/5pfilt-tss.bam"
+        merge_bam=config['path']+"/prac.2/5pfilt-tss.bam",
+        log_complete=config['path']+"/prac.2/log.complete.npy"        
+
 
 #Count total reads in bam file
 #==============================
@@ -78,7 +80,8 @@ rule ATEM:
     output:
         count_mat=config['path']+"/prac.2/ATEM_counts.csv",
         meta_pl_notin=config['path']+"/prac.2/plus.5pfilt-notin.metadata.txt",
-        meta_mi_notin=config['path']+"/prac.2/minus.5pfilt-notin.metadata.txt"
+        meta_mi_notin=config['path']+"/prac.2/minus.5pfilt-notin.metadata.txt",
+        bam_ind=config['path']+"/prac.2/5pfilt-tss_splitstrand.index.npy"
 
     conda:
         "ATEM.yaml"
@@ -134,3 +137,17 @@ rule strand_merge_and_index:
         shell("samtools index {output.merge_bam}")
 
 
+#============================================
+rule all_reads_accounted_for:
+#============================================
+    input: 
+        bam_ind=config['path']+"/prac.2/5pfilt-tss_splitstrand.index.npy",
+        merged_bam=config['path']+"/prac.2/5pfilt-tss.bam",
+        bam_pl=config['path']+"/prac.2/plus.5pfilt.bam",
+        bam_mi=config['path']+"/prac.2/minus.5pfilt.bam"
+    output:
+        log_complete=config['path']+"/prac.2/log.complete.npy"        
+    conda:
+        "ATEM.yaml"
+    script:
+        "sanity_check.py"
