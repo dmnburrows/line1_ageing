@@ -6,6 +6,7 @@ import pandas as pd
 import pyranges as pr
 import sys
 import numpy as np
+import glob
 
 #Import your modules
 #---------------------------------------
@@ -15,7 +16,7 @@ sys.path.insert(1, '/cndd3/dburrows/CODE/admin_tools/')
 from admin_tools import admin_functions as adm
 
 #Read in required files for filtering
-js = json.load(open('config.json'))
+js = json.load(open(glob.glob('*config*')[0])) #CHANGE TO MAKE MORE FLEXIBLE?
 bed_pl = pd.read_csv(js['bed_plus_path'], sep='\t', header=None)
 bed_pl.columns =['Chromosome', 'Start', 'End', 'Strand', 'transcript_id', 'gene_id', 'family_id', 'class_id']
 bed_mi = pd.read_csv(js['bed_minus_path'],sep='\t', header=None)
