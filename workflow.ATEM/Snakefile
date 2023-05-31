@@ -23,7 +23,7 @@ rule log_snake:
 rule count_reads:
 #==============================
     input:
-        expand(config['in_path']+"/{bam}.bam", bam=config["bam"])
+        config['in_path']+"/{bam}.bam"
     output:
         config['out_path']+"/{bam}.total_reads.txt"   
     shell:
@@ -36,7 +36,7 @@ rule count_reads:
 rule split_reads:
 #==========================================
     input:
-        expand(config['in_path']+"/{bam}.bam", bam=config["bam"])
+        config['in_path']+"/{bam}.bam"
     output:
         plus=config['out_path']+"/{bam}.plus.bam",
         minus=config['out_path']+"/{bam}.minus.bam"

@@ -86,12 +86,11 @@ def five_prime_align(chr_bam, chr_bed,  count_df, bam_ind):
         bedind_v=np.append(bedind_v,bedind) #Indeces of chr_bed insertions where each UMI has aligned
         ind_v = np.append(ind_v, ind) # pandas row indeces of chr_bam file where each UMI comes from
         bam_remaining = bam_remaining.drop(ind) #Drop reads that have already been counted
-    bedind_v = bedind_v.astype(int)
+    if len(bedind_v) > 0: bedind_v = bedind_v.astype(int)
     assert len(bam_final) == len(umi_v) == len(bedind_v) == len(ind_v), 'Not all reads accounted for'
     assert len(np.unique(ind_v)) == len(ind_v), 'Some reads counted twice'
     #append index vector for creation of bam file of reads that have aligned to 5' ends
-    bam_ind = np.append(bam_ind, ind_v.astype(int))
-
+    if len(bedind_v) > 0: bam_ind = np.append(bam_ind, ind_v.astype(int))
 
     #Sort by UMI
     sort_umi, sort_bedind = adm.sort_2list(umi_v, bedind_v)
