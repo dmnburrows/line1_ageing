@@ -70,7 +70,14 @@ count_df.to_csv(snakemake.output.count_mat, sep='\t', index=False)
 np.save(snakemake.output.bam_ind,bam_ll)
 
 #Make txt file of start sites to remove
-pl_umi=pd.read_csv(snakemake.input.meta_pl, sep='\t', header=None).iloc[np.setxor1d(np.arange(0,len(bam_pl)) , bam_ll[0].astype(int))]
-mi_umi=pd.read_csv(snakemake.input.meta_mi, sep='\t', header=None).iloc[np.setxor1d(np.arange(0,len(bam_mi)) , bam_ll[1].astype(int))]
+if len(bam_ll[0]) > 0:
+    pl_umi=pd.read_csv(snakemake.input.meta_pl, sep='\t', header=None).iloc[np.setxor1d(np.arange(0,len(bam_pl)) , bam_ll[0].astype(int))]
+elif len(bam_ll[0]) == 0:
+    pl_umi=pd.read_csv(snakemake.input.meta_pl, sep='\t', header=None)
+if len(bam_ll[1]) > 0:
+    mi_umi=pd.read_csv(snakemake.input.meta_mi, sep='\t', header=None).iloc[np.setxor1d(np.arange(0,len(bam_mi)) , bam_ll[1].astype(int))]
+elif len(bam_ll[1]) == 0:
+    mi_umi=pd.read_csv(snakemake.input.meta_mi, sep='\t', header=None)
+
 np.savetxt(snakemake.output.meta_pl_notin,  pl_umi, fmt='%s')
 np.savetxt(snakemake.output.meta_mi_notin,  mi_umi, fmt='%s')
