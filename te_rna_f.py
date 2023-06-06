@@ -52,7 +52,6 @@ def five_prime_align(chr_bam, chr_bed,  count_df, bam_ind):
         bam_ind: vector of indeces from original full bam file of reads that have aligned to 5' ends at their tss
     """
 
-    import numpy as np
     import pandas as pd
     import os
     import sys
@@ -119,7 +118,33 @@ def five_prime_align(chr_bam, chr_bed,  count_df, bam_ind):
     count_df = pd.concat([count_df, curr_df]) #Add them to the count matrix
     return(count_df, bam_ind)
 
+#================================================================
+def load_ATEM_family(ATEM_path, te):
+#================================================================
+    """
+    This function loads an ATEM counts table and returns a vector of mean CPMs for each element or family.
 
+    Inputs:
+        ATEM_path: path to ATEM counts table
+        te: vector of elements or families to get mean CPMs for
+
+    Outputs:
+        cpm_v: vector of mean CPMs for each element or family
+
+    """
+    import pandas as pd
+
+    #Load ATEM counts table
+    count_mat = pd.read_csv(ATEM_path, sep="\t", header=0) 
+    count_sum = count_mat.groupby('gene_id').sum() #Sum counts for each element
+
+    #Calculate summed CPMs for each element
+    cpm_v =[]
+    for i in range(len(te)):
+        if sum(te[i] == count_sum.index) > 0: cpm_v.append(count_sum[te[i] == count_sum.index]['CPM'].values[0])
+        else: cpm_v.append(0)
+    return cpm_v
+    
 
 
 #==============================================================================
