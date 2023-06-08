@@ -141,7 +141,7 @@ def load_ATEM_family(ATEM_path, te):
     #Calculate summed CPMs for each element
     cpm_v =[]
     for i in range(len(te)):
-        if sum(te[i] == count_sum.index) > 0: cpm_v.append(count_sum[te[i] == count_sum.index]['Count'].values[0])
+        if sum(te[i] == count_sum.index) > 0: cpm_v.append(count_sum[te[i] == count_sum.index]['CPM'].values[0])
         else: cpm_v.append(0)
     return cpm_v
     
