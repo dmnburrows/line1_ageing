@@ -146,6 +146,73 @@ def load_ATEM_family(ATEM_path, te):
     return cpm_v
     
 
+#==============================================================================
+def rmsk_filter(df, promoter_cutoff, length_cutoff, n_start, n_end, family):
+#==============================================================================
+    """
+        This function filters the rmsk file for non-truncated insertions and those still containing the promoter, 
+        returning plus and minus strands - it also changes the genome insertion size to just match the promoter overlap region
+        - but the length column still reports the full length. 
+    
+        Inputs:
+            df (dataframe): dataframe of full repeat masker file
+            promoter_cutoff (int): maximum number of bps from the 5' end of the consensus promoter that can be missing to be included
+            length_cutoff (int): minimum length of the full insertion to be included
+            n_start (int): number of bps upstream of 5' end that reads can map to
+            n_end (int): number of bps downstream of 5' end that reads can map to
+            family (str): TE family
+            
+        Outputs:
+            plusfilt (dataframe): full length, promoter containing insertions on plus strand
+            minusfilt (dataframe): full length, promoter containing insertions on minus strand
+
+    """
+
+    #Split strands
+    plus = df[df['strand'] == '+'] [df['repFamily']==family]
+    minus = df[df['strand'] == '-'] [df['repFamily']==family]
+    assert len(plus) + len(minus) == sum(df['repFamily']==family), 'Some insertions not assigned to +/- strands'
+
+    #Filter for promoter and length
+    plus_filt = plus[plus['repStart'] < promoter_cutoff][plus['length'] > length_cutoff]
+    minus_filt = minus[minus['repLeft'] < promoter_cutoff] [minus['length'] > length_cutoff]
+
+    #SANITY CHECK
+    assert sum(plus_filt ["length"] > length_cutoff) == len(plus_filt), 'Lengths are incorrectly filtered'
+    assert sum(plus_filt ["repStart"] < promoter_cutoff) == len(plus_filt), 'Promoter portions are too short'
+    assert sum(minus_filt ["length"] > length_cutoff) == len(minus_filt), 'Lengths are incorrectly filtered'
+    assert sum(minus_filt ["repLeft"] < promoter_cutoff) == len(minus_filt), 'Promoter portions are too short'
+
+    #Replace start/end of insertion with overlap range that reads must overlap with
+    plus_filt['genoEnd'] = plus_filt['genoStart'] + n_end
+    plus_filt['genoStart'] = plus_filt['genoStart'] - n_start
+    minus_filt['genoStart'] = minus_filt['genoEnd'] - n_end
+    minus_filt['genoEnd'] = minus_filt['genoEnd'] + n_start
+
+    te_plus = plus_filt[['genoName', 'genoStart', 'genoEnd', 'strand', 'repName', 'repFamily', 'repClass', 'length']]
+    te_minus = minus_filt[['genoName', 'genoStart', 'genoEnd', 'strand', 'repName','repFamily', 'repClass', 'length']]
+    
+    
+    te_plus = te_plus.rename(columns={'genoName': 'Chromosome', 'genoStart':'Start', 
+                                      'genoEnd':'End', 'strand':'Strand', 'repName':'gene_id', 
+                                      'repFamily':'family_id', 'repClass': 'class_id'})
+    te_minus = te_minus.rename(columns={'genoName': 'Chromosome', 'genoStart':'Start', 
+                                      'genoEnd':'End', 'strand':'Strand', 'repName':'gene_id', 
+                                      'repFamily':'family_id', 'repClass': 'class_id'})
+    
+    te_plus.loc[te_plus['Start'] < 0,'Start'] = 0
+    te_plus.loc[te_plus['End'] < 0,'End'] = 0
+
+    te_minus.loc[te_minus['Start'] < 0,'Start'] = 0
+    te_minus.loc[te_minus['End'] < 0,'End'] = 0
+
+   
+
+    #SANITY CHECK
+    assert sum(te_plus["Strand"] == "+") == len(te_plus), 'Some non plus strands assigned to plus bed'
+    assert sum(te_minus["Strand"] == "-") == len(te_minus), 'Some non minus strands assigned to minus bed'
+
+    return(te_plus, te_minus)
 
 #==============================================================================
 def calculate_age(milli_div, subsitution_rate=2.2):
