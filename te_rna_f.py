@@ -65,8 +65,8 @@ def five_prime_align(chr_bam, chr_bed,  count_df, bam_ind):
     all_bed_pos = np.asarray([(np.arange(chr_bed['Start'].values[i], chr_bed['End'].values[i]+1), np.full(chr_bed['End'].values[i]+1 - chr_bed['Start'].values[i],i)) for i in range(len(chr_bed))]) #list of all bed positions for each insertion and their indeces
     assert len(all_bed_pos) == len(chr_bed), 'Not all bed positions accounted for'
 
-    flat_bed_pos = np.ravel(np.asarray(all_bed_pos)[:,0,:]) # flattened vector of all 5' regions across all insertions
-    flat_bed_ind = np.ravel(np.asarray(all_bed_pos)[:,1,:]) # flattened vector of indeces for each region that maps it back onto the original bed file
+    flat_bed_pos = np.ravel(np.asarray(all_bed_pos)[:,0]) # flattened vector of all 5' regions across all insertions
+    flat_bed_ind = np.ravel(np.asarray(all_bed_pos)[:,1]) # flattened vector of indeces for each region that maps it back onto the original bed file
     assert len(flat_bed_pos) == len(flat_bed_ind), 'Bed position and index vectors not the same length'
 
     # get BAM file of final aligning reads
