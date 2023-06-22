@@ -18,9 +18,12 @@ from admin_tools import admin_functions as adm
 #Read in required files for filtering
 js = json.load(open(glob.glob('*config*')[0])) #CHANGE TO MAKE MORE FLEXIBLE?
 bed_pl = pd.read_csv(js['bed_plus_path'], sep='\t', header=None)
-bed_pl.columns =['Chromosome', 'Start', 'End', 'Strand', 'gene_id', 'family_id', 'class_id']
+bed_pl.columns =['Chromosome', 'Start', 'End', 'Strand', 'gene_id', 'family_id', 'class_id', 'length']
+bed_pl = bed_pl.drop(columns=['length'])
 bed_mi = pd.read_csv(js['bed_minus_path'],sep='\t', header=None)
-bed_mi.columns =['Chromosome', 'Start', 'End', 'Strand', 'gene_id', 'family_id', 'class_id']
+bed_mi.columns =['Chromosome', 'Start', 'End', 'Strand', 'gene_id', 'family_id', 'class_id', 'length']
+bed_mi = bed_mi.drop(columns=['length'])
+
 
 bam_pl = pr.read_bam(snakemake.input.bam_pl, as_df=True) 
 bam_mi = pr.read_bam(snakemake.input.bam_mi, as_df=True) 
