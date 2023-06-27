@@ -1,3 +1,7 @@
 # ignore all .snakemake
 .snakemake/
 .snakemake/**
+
+#ignore all temp
+workflow.ATEM/temp/
+workflow.ATEM/temp/**

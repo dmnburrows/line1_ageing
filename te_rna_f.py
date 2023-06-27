@@ -119,6 +119,29 @@ def five_prime_align(chr_bam, chr_bed,  count_df, bam_ind):
     return(count_df, bam_ind)
 
 #================================================================
+def pysam_subset(file_path):
+#================================================================
+    """
+    This function subsets the columns of the bam file to only include the columns of interest for ATEM filtering.
+
+    """
+    import pysam
+    import pandas as pd
+    fin = pysam.AlignmentFile(file_path, 'rb')
+    out = {'Chromosome':[], 'Start': [], 'End': [], 'Strand': [], 'Flag': [] }
+    for x,read in enumerate(fin):
+        out['Chromosome'].append(read.reference_name)
+        out['Start'].append(read.reference_start)
+        out['End'].append(read.reference_end)
+        out['Flag'].append(read.flag)
+        if read.is_forward == True:
+            out['Strand'].append('+')
+        elif read.is_reverse == True:
+            out['Strand'].append('-')
+    out = pd.DataFrame(out)
+    return(out)
+
+#================================================================
 def load_ATEM_family(ATEM_path, te):
 #================================================================
     """

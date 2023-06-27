@@ -3,7 +3,7 @@
 #---------------------------------------
 import json
 import pandas as pd
-import pyranges as pr
+import pysam
 import sys
 import numpy as np
 import glob
@@ -25,8 +25,12 @@ bed_mi.columns =['Chromosome', 'Start', 'End', 'Strand', 'gene_id', 'family_id',
 bed_mi = bed_mi.drop(columns=['length'])
 
 
-bam_pl = pr.read_bam(snakemake.input.bam_pl, as_df=True) 
-bam_mi = pr.read_bam(snakemake.input.bam_mi, as_df=True) 
+# bam_pl = pr.read_bam(snakemake.input.bam_pl, as_df=True) 
+# bam_mi = pr.read_bam(snakemake.input.bam_mi, as_df=True) 
+bam_pl = te.pysam_subset(snakemake.input.bam_pl) 
+bam_mi = te.pysam_subset(snakemake.input.bam_mi) 
+
+
 #Swap Start + End for minus strand
 bam_mi['Start'], bam_mi['End'] = bam_mi['End'], bam_mi['Start']
 
