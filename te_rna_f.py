@@ -142,7 +142,7 @@ def pysam_subset(file_path):
     return(out)
 
 #================================================================
-def load_ATEM_family(ATEM_path, te):
+def load_ATEM_family(ATEM_path, te, mode):
 #================================================================
     """
     This function loads an ATEM counts table and returns a vector of mean CPMs for each element or family.
@@ -150,9 +150,10 @@ def load_ATEM_family(ATEM_path, te):
     Inputs:
         ATEM_path: path to ATEM counts table
         te: vector of elements or families to get mean CPMs for
+        mode (str): CPM or Counts
 
     Outputs:
-        cpm_v: vector of mean CPMs for each element or family
+        cpm_v: vector of total CPMs/Counts for each element or family
 
     """
     import pandas as pd
@@ -164,7 +165,7 @@ def load_ATEM_family(ATEM_path, te):
     #Calculate summed CPMs for each element
     cpm_v =[]
     for i in range(len(te)):
-        if sum(te[i] == count_sum.index) > 0: cpm_v.append(count_sum[te[i] == count_sum.index]['Count'].values[0])
+        if sum(te[i] == count_sum.index) > 0: cpm_v.append(count_sum[te[i] == count_sum.index][mode].values[0])
         else: cpm_v.append(0)
     return cpm_v
     

@@ -13,10 +13,10 @@ for(i in files) {
     cnts <- read.csv(input, header=TRUE, check.names=FALSE, row.names=1)
     dds <-DESeqDataSetFromMatrix(countData=cnts, 
                                 colData=coldata, 
-                                design=~Subject.Age+Subject.Sex) 
+                                design=~Subject.Sex+Subject.Age) 
     dds <- DESeq(dds)
     res <- results(dds, alpha=0.1)
-    output <- paste0(str_sub(i, 1, -10), ".DESEQ_sex.csv")
+    output <- paste0(str_sub(i, 1, -10), ".DESEQ_age.csv")
     print(output)
     write.csv(as.data.frame(res), file=output)
 

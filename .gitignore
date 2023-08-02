@@ -3,5 +3,5 @@
 .snakemake/**
 
 #ignore all temp
-workflow.ATEM/temp/
-workflow.ATEM/temp/**
+./workflow**/.temp/
+./workflow**/.temp/**

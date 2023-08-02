@@ -1,10 +1,10 @@
 library(DESeq2)
 library(tidyverse)
 
-setwd("/cndd3/dburrows/DATA/te/rna/PE.counts/DESEQ/")
+setwd("/cndd/dburrows/DATA/te/rna/PE.counts/DESEQ/")
 
 coldata <- read.csv("ATEM_design.csv", row.names=1)
-cnts <- read.csv("ATEM_counts.csv", header=TRUE, check.names=FALSE, row.names=1)
+cnts <- read.csv("ATEM_sub-COUNT.csv", header=TRUE, check.names=FALSE, row.names=1)
 
 dds <-DESeqDataSetFromMatrix(countData=cnts, 
                              colData=coldata, 
