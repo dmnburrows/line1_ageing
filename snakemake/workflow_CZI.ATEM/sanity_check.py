@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 import pysam
-sys.path.insert(1, '/cndd3/dburrows/CODE/te_ageing/')
-import te_rna_f as te
 
 def check(check_bool, check_bam, sign):
     bam_ = np.char.add((check_bam[check_bam['Strand'] == sign]['Start'].values).astype(str),  (check_bam[check_bam['Strand'] == sign]['Chromosome'].values).astype(str))
