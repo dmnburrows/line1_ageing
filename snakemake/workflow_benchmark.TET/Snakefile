@@ -1,0 +1,32 @@
+#==============================
+rule all:
+#==============================
+    input:
+        log_snake=config['out_path']+"/log.Snakefile",
+        count_mat=expand(config['out_path']+"/TET-{ID}/out.cntTable", ID=config["ID"])
+
+#Create log file for Snakefile
+#==============================
+rule log_snake:
+#==============================
+  output: config['out_path']+"/log.Snakefile"
+  shell:  """
+          cp ./Snakefile {output}
+          """
+
+#Run TET count
+#==============================
+rule TET_count:
+#==============================
+    input:
+        config['in_path']+"/{ID}/Aligned.sortedByCoord.out.bam"
+    output:
+        config['out_path']+"/TET-{ID}/out.cntTable"
+
+    conda:
+        "TET.yaml"
+
+    shell:
+        """
+        TEcount --format BAM --mode multi -b {input} --GTF /cndd3/dburrows/DATA/te/gtf/annotations/gencode/ge
+        """
