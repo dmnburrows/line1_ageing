@@ -1,13 +1,15 @@
 #!/bin/bash
 
 #Define paths
-# clust=($(ls $in_path))
+in=($(find /cndd/dburrows/DATA/public_data/ATEM_benchmark/ -maxdepth 1 -name "*EN*"))
+out=/cndd/dburrows/DATA/public_data/TET_benchmark/
 
 # loop over all files in the input directory
-i=$1
-in_path="/cndd3/dburrows/DATA/public_datasets/10x.NSCLC_tumour.5p/sep_bam/"
-echo 'Running: ' $i
-TEcount --format BAM --mode multi -b $in_path/$i/Aligned.sortedByCoord.out.bam --GTF /cndd3/dburrows/DATA/te/gtf/annotations/gencode/gencode.v37.annotation.hg38.gtf --TE /cndd3/dburrows/DATA/te/gtf/annotations/rmsk/rmsk.hg38.gtf --project TET-$i --outdir /cndd3/dburrows/DATA/public_datasets/10x.NSCLC_tumour.5p/TET/
+for i in ${in[@]}
+do
+    echo 'Running: ' $i
+    base=$(basename $i)
+    TEcount --sortByPos --format BAM --mode multi -b $i/Aligned.sortedByCoord.out.bam --GTF /cndd3/dburrows/DATA/te/gtf/annotations/gencode/gencode.v37.annotation.hg38.gtf --TE /cndd3/dburrows/DATA/te/gtf/annotations/rmsk/rmsk.hg38.gtf --outdir $out/TET-$base
+done
 
 echo 'Done'
-
