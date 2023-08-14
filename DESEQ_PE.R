@@ -23,6 +23,3 @@ write.csv(as.data.frame(race_res), file="DESEQ_race.csv")
 
 
 
-
-
-
