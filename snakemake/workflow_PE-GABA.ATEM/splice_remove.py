@@ -1,5 +1,7 @@
 # Check that spliced reads have been removed correctly
 import pysam as sam
+import numpy as np
+
 full = sam.AlignmentFile(snakemake.input.splice_bam, 'rb')
 nosplice = sam.AlignmentFile(snakemake.input.nosplice_bam, 'rb')
 
