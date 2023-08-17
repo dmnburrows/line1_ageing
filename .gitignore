@@ -3,12 +3,11 @@
 .snakemake/**
 
 #ignore all .
-./.**
-./.**/**
+.**
+.**/**
 
 #ignore all temp
 ./workflow**/.temp/
 ./workflow**/.temp/**
 __pycache__/te_rna_f.cpython-37.pyc
 __pycache__/te_rna_f.cpython-310.pyc
-.nfs0000000000b36b4d0001b9e0

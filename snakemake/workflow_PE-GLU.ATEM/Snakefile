@@ -1,14 +1,12 @@
-ruleorder: log_snake > count_reads > split_reads > samfilter_reads > get_metadata > ATEM > filter_bam_by_ATEM > sam_to_bam > strand_merge_and_index > splice_removal > splice_check > all_reads_accounted_for > all
-
 #==============================
 rule all:
 #==============================
     input:
         log_snake=config['out_path']+"/log.Snakefile",
-        count_mat=expand(config['out_path']+"/{bam}.ATEM_counts.csv", bam=config["bam"]),
-        merge_bam=expand(config['out_path']+"/{bam}.5pfilt-tss.bam", bam=config["bam"]),
-        splice_log=expand(config['out_path']+"/{bam}.splice_log.npy", bam=config["bam"]),
-        log_complete=expand(config['out_path']+"/{bam}.log.complete.npy", bam=config["bam"])
+        count_mat=expand(config['out_path']+"/{ID}/ATEM_counts.csv", ID=config["ID"]),
+        merge_bam=expand(config['out_path']+"/{ID}/5pfilt-tss.bam", ID=config["ID"]),
+        splice_log=expand(config['out_path']+"/{ID}/splice_log.npy", ID=config["ID"]),
+        log_complete=expand(config['out_path']+"/{ID}/log.complete.npy", ID=config["ID"])
 
 #Create log file for Snakefile
 #==============================
@@ -24,9 +22,9 @@ rule log_snake:
 rule count_reads:
 #==============================
     input:
-        config['in_path']+"/{bam}.bam"
+        config['in_path']+"/{ID}/Aligned.sortedByCoord.out.bam"
     output:
-        config['out_path']+"/{bam}.total_reads.txt"
+        config['out_path']+"/{ID}/total_reads.txt"
     shell:
         """
         samtools view {input} | wc -l > {output}
@@ -37,10 +35,10 @@ rule count_reads:
 rule split_reads:
 #==========================================
     input:
-        config['in_path']+"/{bam}.bam"
+        config['in_path']+"/{ID}/Aligned.sortedByCoord.out.bam"
     output:
-        plus=config['out_path']+"/{bam}.plus.bam",
-        minus=config['out_path']+"/{bam}.minus.bam"
+        plus=config['out_path']+"/{ID}/plus.bam",
+        minus=config['out_path']+"/{ID}/minus.bam"
 
     run:
         shell("samtools view -h -F 0x10 {input} > {output.plus}"),
@@ -52,11 +50,11 @@ rule split_reads:
 rule samfilter_reads:
 #==========================================
     input:
-        plus=config['out_path']+"/{bam}.plus.bam",
-        minus=config['out_path']+"/{bam}.minus.bam"
+        plus=config['out_path']+"/{ID}/plus.bam",
+        minus=config['out_path']+"/{ID}/minus.bam"
     output:
-        plus=config['out_path']+"/{bam}.plus.5pfilt.bam",
-        minus=config['out_path']+"/{bam}.minus.5pfilt.bam"
+        plus=config['out_path']+"/{ID}/plus.5pfilt.bam",
+        minus=config['out_path']+"/{ID}/minus.5pfilt.bam"
     run:
         shell("samtools view -b -h -L "+config['bed_plus_path']+" {input.plus} > {output.plus}")
         shell("samtools index {output.plus}")
@@ -68,11 +66,11 @@ rule samfilter_reads:
 rule get_metadata:
 #============================================
     input:
-        plus=config['out_path']+"/{bam}.plus.5pfilt.bam",
-        minus=config['out_path']+"/{bam}.minus.5pfilt.bam"
+        plus=config['out_path']+"/{ID}/plus.5pfilt.bam",
+        minus=config['out_path']+"/{ID}/minus.5pfilt.bam"
     output:
-        plus=config['out_path']+"/{bam}.plus.5pfilt.metadata.txt",
-        minus=config['out_path']+"/{bam}.minus.5pfilt.metadata.txt"
+        plus=config['out_path']+"/{ID}/plus.5pfilt.metadata.txt",
+        minus=config['out_path']+"/{ID}/minus.5pfilt.metadata.txt"
     run:
         shell("samtools view {input.plus} | cut -f -9 > {output.plus} ")
         shell("samtools view {input.minus} | cut -f -9 > {output.minus} ")
@@ -84,16 +82,16 @@ rule get_metadata:
 rule ATEM:
 #============================================
     input:
-        bam_pl=config['out_path']+"/{bam}.plus.5pfilt.bam",
-        bam_mi=config['out_path']+"/{bam}.minus.5pfilt.bam",
-        meta_pl=config['out_path']+"/{bam}.plus.5pfilt.metadata.txt",
-        meta_mi=config['out_path']+"/{bam}.minus.5pfilt.metadata.txt",
-        n_reads=config['out_path']+"/{bam}.total_reads.txt"
+        bam_pl=config['out_path']+"/{ID}/plus.5pfilt.bam",
+        bam_mi=config['out_path']+"/{ID}/minus.5pfilt.bam",
+        meta_pl=config['out_path']+"/{ID}/plus.5pfilt.metadata.txt",
+        meta_mi=config['out_path']+"/{ID}/minus.5pfilt.metadata.txt",
+        n_reads=config['out_path']+"/{ID}/total_reads.txt"
     output:
-        count_mat=config['out_path']+"/{bam}.ATEM_counts.csv",
-        meta_pl_notin=config['out_path']+"/{bam}.plus.5pfilt-notin.metadata.txt",
-        meta_mi_notin=config['out_path']+"/{bam}.minus.5pfilt-notin.metadata.txt",
-        bam_ind=config['out_path']+"/{bam}.5pfilt-tss_splitstrand.index.npy"
+        count_mat=config['out_path']+"/{ID}/ATEM_counts.csv",
+        meta_pl_notin=config['out_path']+"/{ID}/plus.5pfilt-notin.metadata.txt",
+        meta_mi_notin=config['out_path']+"/{ID}/minus.5pfilt-notin.metadata.txt",
+        bam_ind=config['out_path']+"/{ID}/5pfilt-tss_splitstrand.index.npy"
 
     conda:
         "ATEM.yaml"
@@ -106,14 +104,14 @@ rule ATEM:
 rule filter_bam_by_ATEM:
 #============================================
     input:
-        plus=config['out_path']+"/{bam}.plus.5pfilt.bam",
-        minus=config['out_path']+"/{bam}.minus.5pfilt.bam",
-        meta_pl_notin=config['out_path']+"/{bam}.plus.5pfilt-notin.metadata.txt",
-        meta_mi_notin=config['out_path']+"/{bam}.minus.5pfilt-notin.metadata.txt"
+        plus=config['out_path']+"/{ID}/plus.5pfilt.bam",
+        minus=config['out_path']+"/{ID}/minus.5pfilt.bam",
+        meta_pl_notin=config['out_path']+"/{ID}/plus.5pfilt-notin.metadata.txt",
+        meta_mi_notin=config['out_path']+"/{ID}/minus.5pfilt-notin.metadata.txt"
 
     output:
-        plus_sam=config['out_path']+"/{bam}.plus.5pfilt-tss.sam",
-        minus_sam=config['out_path']+"/{bam}.minus.5pfilt-tss.sam"
+        plus_sam=config['out_path']+"/{ID}/plus.5pfilt-tss.sam",
+        minus_sam=config['out_path']+"/{ID}/minus.5pfilt-tss.sam"
 
     shell:
         """
@@ -126,11 +124,11 @@ rule filter_bam_by_ATEM:
 rule sam_to_bam:
 #============================================
     input:
-        plus_sam=config['out_path']+"/{bam}.plus.5pfilt-tss.sam",
-        minus_sam=config['out_path']+"/{bam}.minus.5pfilt-tss.sam"
+        plus_sam=config['out_path']+"/{ID}/plus.5pfilt-tss.sam",
+        minus_sam=config['out_path']+"/{ID}/minus.5pfilt-tss.sam"
     output:
-        plus_bam=config['out_path']+"/{bam}.plus.5pfilt-tss.bam",
-        minus_bam=config['out_path']+"/{bam}.minus.5pfilt-tss.bam"
+        plus_bam=config['out_path']+"/{ID}/plus.5pfilt-tss.bam",
+        minus_bam=config['out_path']+"/{ID}/minus.5pfilt-tss.bam"
     run:
         shell("samtools view -S -b {input.plus_sam} > {output.plus_bam}")
         shell("samtools view -S -b {input.minus_sam} > {output.minus_bam}")
@@ -140,10 +138,10 @@ rule sam_to_bam:
 rule strand_merge_and_index:
 #============================================
     input:
-        plus_bam=config['out_path']+"/{bam}.plus.5pfilt-tss.bam",
-        minus_bam=config['out_path']+"/{bam}.minus.5pfilt-tss.bam"
+        plus_bam=config['out_path']+"/{ID}/plus.5pfilt-tss.bam",
+        minus_bam=config['out_path']+"/{ID}/minus.5pfilt-tss.bam"
     output:
-        merge_bam=config['out_path']+"/{bam}.5pfilt-tss.bam"
+        merge_bam=config['out_path']+"/{ID}/5pfilt-tss.bam"
     run:
         shell("samtools merge -f {output.merge_bam} {input.plus_bam} {input.minus_bam}")
         shell("samtools index {output.merge_bam}")
@@ -152,9 +150,9 @@ rule strand_merge_and_index:
 rule splice_removal:
 #============================================
     input:
-        splice_bam=config['out_path']+"/{bam}.5pfilt-tss.bam"
+        splice_bam=config['out_path']+"/{ID}/5pfilt-tss.bam"
     output:
-        nosplice_bam=config['out_path']+"/{bam}.5pfilt-tss_nosplice.bam"
+        nosplice_bam=config['out_path']+"/{ID}/5pfilt-tss_nosplice.bam"
     run:
         shell("samtools view -h {input.splice_bam} | awk '/^@/ {{print;next}} !($6 ~ /N/)' | samtools view -bo {output.nosplice_bam}")
         shell("samtools index {output.nosplice_bam}")
@@ -163,30 +161,27 @@ rule splice_removal:
 rule splice_check:
 #============================================
     input:
-        splice_bam=config['out_path']+"/{bam}.5pfilt-tss.bam",
-        nosplice_bam=config['out_path']+"/{bam}.5pfilt-tss_nosplice.bam"
+        splice_bam=config['out_path']+"/{ID}/5pfilt-tss.bam",
+        nosplice_bam=config['out_path']+"/{ID}/5pfilt-tss_nosplice.bam"
     output:
-        splice_log=config['out_path']+"/{bam}.splice_log.npy"
+        splice_log=config['out_path']+"/{ID}/splice_log.npy"
     conda:
         "ATEM.yaml"
     script:
         "splice_remove.py"
 
-
 #============================================
 rule all_reads_accounted_for:
 #============================================
     input:
-        bam_ind=config['out_path']+"/{bam}.5pfilt-tss_splitstrand.index.npy",
-        merged_bam=config['out_path']+"/{bam}.5pfilt-tss.bam",
-        bam_pl=config['out_path']+"/{bam}.plus.5pfilt.bam",
-        bam_mi=config['out_path']+"/{bam}.minus.5pfilt.bam"
+        bam_ind=config['out_path']+"/{ID}/5pfilt-tss_splitstrand.index.npy",
+        merged_bam=config['out_path']+"/{ID}/5pfilt-tss.bam",
+        bam_pl=config['out_path']+"/{ID}/plus.5pfilt.bam",
+        bam_mi=config['out_path']+"/{ID}/minus.5pfilt.bam"
     output:
-        log_complete=config['out_path']+"/{bam}.log.complete.npy"
+        log_complete=config['out_path']+"/{ID}/log.complete.npy"
     conda:
         "ATEM.yaml"
     script:
         "sanity_check.py"
-
-
 
