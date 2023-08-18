@@ -365,3 +365,33 @@ def read_rmsk(filename: str):
     df["age"] = df["milliDiv"].apply(calculate_age)
 
     return df
+
+
+#========================
+def spear_adjp(df, age, alpha):
+#========================
+    """
+    This functon calculates spearman's correlation for each subfamily and applies FDR correction.
+
+    Input:
+    df: dataframe with subfamily expression values
+    age: age of the samples
+
+    Output:
+    spear_age_res: dataframe with spearman's correlation, p-value and adjusted p-value for each subfamily
+    """
+
+
+    import numpy as np
+    import pandas as pd
+    import scipy.stats as stats
+    import mne 
+    res = stats.spearmanr(np.reshape(age, (1,len(age))), np.asarray(df), axis=1)
+    stat = res.statistic[1:,0]
+    pval = res.pvalue[1:,0]
+
+    sig_v, adj_p_vals = mne.stats.fdr_correction(pval, alpha, 'indep') #Use Benjamini hochberg FDR test 
+
+    spear_age_res = pd.DataFrame({'stat':stat, 'pval':pval, 'adj_pval':adj_p_vals}, index=df.index.values)
+    spear_age_res['geneid'] = spear_age_res.index
+    return(spear_age_res)
