@@ -395,3 +395,61 @@ def spear_adjp(df, age, alpha):
     spear_age_res = pd.DataFrame({'stat':stat, 'pval':pval, 'adj_pval':adj_p_vals}, index=df.index.values)
     spear_age_res['geneid'] = spear_age_res.index
     return(spear_age_res)
+
+
+#======================================== 
+def te_group_coarse(df, meta, name):
+#======================================== 
+
+    """
+    This function takes in a dataframe of TE counts and metadata for specific donors, and returns a list of mean CPM values and age for each donor.
+
+    Input:
+    df: dataframe of TE counts
+    meta: dataframe of metadata
+    name: TE family name (L1, Alu or SVA)
+
+    Output:
+    cpm_v: list of mean CPM values for each donor
+    age_v: list of ages for each donor
+    """
+    if name != 'L1' and name != 'Alu' and name != 'SVA':
+        print('Error: TE family not recognised, must be L1, Alu or SVA')
+        return()
+
+    ind = [x for x,i in enumerate(df.index) if name in i]#l1 ind
+    cpm_v = [np.mean(df.iloc[ind][i])for i in meta['sample'].values]
+    age_v = meta['AGEYEARS'].values
+
+    return(cpm_v, age_v)
+
+
+#======================================== 
+def te_group_el(df, meta, name):
+#======================================== 
+
+    """
+    This function takes in a dataframe of TE counts and metadata for specific donors, and returns a dataframe of CPM values for each TE subfamily, and age for each donor.
+
+    Input:
+    df: dataframe of TE counts
+    meta: dataframe of metadata
+    name: TE family name (L1, Alu or SVA)
+
+    Output:
+    cpm_df: dataframe of CPM values for each TE subfamily
+    age_v: list of ages for each donor
+    """
+    import pandas as pd
+
+    
+    if name != 'L1' and name != 'Alu' and name != 'SVA':
+        print('Error: TE family not recognised, must be L1, Alu or SVA')
+        return()
+
+    ind = [x for x,i in enumerate(df.index) if name in i]#l1 ind
+    cpm_v = [df.iloc[ind][i] for i in meta['sample'].values]
+    cpm_df = pd.DataFrame(cpm_v).T
+    age_v = meta['AGEYEARS'].values
+
+    return(cpm_df, age_v)
