@@ -453,3 +453,41 @@ def te_group_el(df, meta, name):
     age_v = meta['AGEYEARS'].values
 
     return(cpm_df, age_v)
+
+
+#===============================
+def multimap_stats(path):
+#===============================
+
+    """
+    This function takes in a path to a bam file and returns the number of reads that map to multiple locations versus uniquely as a dataframe.
+
+    Parameters
+    ----------
+    path : str
+        Path to bam file
+
+    Returns
+    -------
+    df : pandas dataframe
+        Dataframe with number of reads that map to multiple locations versus uniquely
+    """
+    import pysam
+    import pandas as pd
+    fin = pysam.AlignmentFile(path, 'rb')
+    count=0
+    for x,read in enumerate(fin):
+        count+=1
+    fin = pysam.AlignmentFile(path, 'rb')
+    test = list(range(count))
+    for x,read in enumerate(fin):
+        test[x] = read.query_name
+
+    unq = np.unique(test, return_counts=True)
+    n_unq = sum(unq[1] == 1)
+    n_multi = sum(unq[1] > 1)
+    perc_unq = (n_unq/(n_unq+n_multi))*100
+    perc_unq_all_reads = (n_unq / (len(test)))*100
+
+    df = pd.DataFrame({'n_unique': [n_unq], 'multi': [n_multi], 'perc_unq_vs_multi_singlereads': [perc_unq], 'perc_unq_vs_multi_allreads': [perc_unq_all_reads]})
+    return(df)
