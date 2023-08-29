@@ -3,9 +3,9 @@
 This repo is for the preprocessing and analysis transposable elements across the lifepsan in aligned genomic data (WGS, rna, methylation)
 
 ## What is this repo for?
-* the processing and RNA and methylation datasets from human brain donors
+* the processing of RNA datasets from human brain donors
 * the construction of algorithms for quantifying active TE RNA expression
-* the analysis of transposable element RNA expression and methylation markers across the lifespan
+* the analysis of transposable element RNA expression across the lifespan
 
 
 ## What does this repo contain?
