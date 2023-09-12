@@ -476,12 +476,10 @@ def multimap_stats(path):
     import pandas as pd
     fin = pysam.AlignmentFile(path, 'rb')
     count=0
+    test=[]
     for x,read in enumerate(fin):
+        test = np.append(test,read.query_name)
         count+=1
-    fin = pysam.AlignmentFile(path, 'rb')
-    test = list(range(count))
-    for x,read in enumerate(fin):
-        test[x] = read.query_name
 
     unq = np.unique(test, return_counts=True)
     n_unq = sum(unq[1] == 1)
