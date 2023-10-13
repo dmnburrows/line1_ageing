@@ -489,3 +489,36 @@ def multimap_stats(path):
 
     df = pd.DataFrame({'n_unique': [n_unq], 'multi': [n_multi], 'perc_unq_vs_multi_singlereads': [perc_unq], 'perc_unq_vs_multi_allreads': [perc_unq_all_reads]})
     return(df)
+
+
+#===============================
+def paired_test(s1, s2):
+#===============================
+
+    """
+    This function takes in two vectors of data, tests for normality and then performs appropriate parameteric
+     (independent t-test) or non-parametric test (MWU).
+
+    Parameters
+    ----------
+    s1 : vector of data
+    s2 : vector of data
+
+    Returns
+    -------
+    stat : t-statistic
+    p : p-value
+    """
+    from scipy.stats import shapiro
+    from scipy.stats import mannwhitneyu
+    from scipy.stats import ttest_ind
+    stat1, p1 = shapiro(s1)
+    stat2, p2 = shapiro(s2)
+    if p1 < 0.05 or p2 < 0.05:
+        #non-parametric indendent t test
+        stat, p = mannwhitneyu(s1, s2)
+    else:
+        #parametric independent t test
+        stat, p = ttest_ind(s1, s2)
+
+    return(stat,p)
