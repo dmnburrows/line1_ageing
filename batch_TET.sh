@@ -9,7 +9,7 @@ for i in ${in[@]}
 do
     echo 'Running: ' $i
     base=$(basename $i)
-    TEcount --sortByPos --format BAM --mode multi -b $i/Aligned.sortedByCoord.out.bam --GTF /cndd3/dburrows/DATA/te/gtf/annotations/gencode/gencode.v37.annotation.hg38.gtf --TE /cndd3/dburrows/DATA/te/gtf/annotations/rmsk/rmsk.hg38.gtf --outdir $out/TET-$base
+    TEcount --sortByPos --format BAM --mode multi --stranded reverse -b $i/Aligned.sortedByCoord.out.bam??? --GTF /cndd3/dburrows/DATA/te/annotations/gencode/gencode.v37.annotation.hg38.gtf --TE /cndd3/dburrows/DATA/te/annotations/rmsk/rmsk.hg38.gtf --outdir $out/TET-$base???
 done
 
 echo 'Done'
