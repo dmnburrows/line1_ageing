@@ -3,7 +3,7 @@ rule all:
 #==============================
     input:
         log_snake=config['out_path']+"/log.Snakefile",
-        count_mat=expand(config['out_path']+"/TET-{ID}/TEcount_out.cntTable", ID=config["ID"])
+        count_mat=expand(config['out_path']+"/{ID}/TEcount_out.cntTable", ID=config["ID"])
 
 #Create log file for Snakefile
 #==============================
@@ -21,15 +21,15 @@ rule TET_count:
     input:
         config['in_path']+"/{ID}/Aligned.sortedByCoord.out.bam"
     output:
-        outdir=config['out_path']+"/TET-{ID}/",
+        outfile=config['out_path']+"/{ID}/TEcount_out.cntTable",
+        outdir=config['out_path']+"/{ID}/"
         
-
-
     conda:
         "TET.yaml"
 
     shell:
         """
-        TEcount --sortByPos --format BAM --mode multi -b {input} --GTF /cndd3/dburrows/DATA/te/gtf/annotations/gencode/gencode.v37.annotation.hg38.gtf --TE /cndd3/dburrows/DATA/te/gtf/annotations/rmsk/rmsk.hg38.gtf --outdir {output.outdir}
+        TEcount --sortByPos --format BAM --mode multi --stranded reverse -b {input} --GTF /cndd3/dburrows/DATA/te/annotations/gencode/gencode.v37.annotation.hg38.gtf --TE /cndd3/dburrows/DATA/te/annotations/rmsk/rmsk.hg38.gtf --outdir {output.outdir}
 
         """
+
