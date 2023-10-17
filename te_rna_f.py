@@ -522,3 +522,40 @@ def paired_test(s1, s2):
         stat, p = ttest_ind(s1, s2)
 
     return(stat,p)
+
+#==========================================================
+def inf_paired_comp(class_l, cell_l, period_l, group_df):
+#==========================================================
+    """
+    This function takes in a dataframe of RNA counts, and lists of gene classes, celltypes and age groups to loop over
+    , and groups all data into a dataframe of p values for comparisons with Infancy groups. 
+
+    Inputs:
+        class_l: list of gene classes to loop over
+        cell_l: list of celltypes to loop over
+        period_l: list of age groups to loop over
+        group_df: dataframe of RNA counts
+
+    Outputs:
+        comp_df: dataframe of p values for comparisons with Infancy groups
+    """
+    import pandas as pd
+
+    comp_df = {'celltype':[], 'Class':[], 'Comparison':[], 'p value':[], 'padj_sig': [], 'statistic':[]}
+    for cl in class_l:
+        for cell in cell_l:
+            for p in period_l:
+                #get data
+                curr_df = group_df[group_df['Class'] == cl]
+                curr_df = curr_df[curr_df['celltype'] == cell]
+                per_df = curr_df[curr_df['period'] == p]
+                #get data for comparison
+                comp_df['celltype'].append(cell)
+                comp_df['Class'].append(cl)
+                comp_df['Comparison'].append('infancy' + '_' + p)
+                comp_df['p value'].append(paired_test(curr_df['RNA'][curr_df['period'] == 'Infancy'], per_df['RNA'].values)[1])
+                comp_df['statistic'].append(paired_test(curr_df['RNA'][curr_df['period'] == 'Infancy'], per_df['RNA'].values)[0])
+
+    comp_df['padj_sig'] = np.asarray(comp_df['p value']) < 0.05/5
+    comp_df = pd.DataFrame(comp_df)
+    return(comp_df)
