@@ -7,8 +7,6 @@ import glob
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
-from Bio import SeqIO
-import pyranges as pr
 
 #Import your modules
 #---------------------------------------
@@ -26,7 +24,6 @@ s_code = '/cndd3/dburrows/CODE/'
 s_data = '/cndd3/dburrows/DATA/'
 s_fig = '/cndd3/dburrows/FIGS/'
 
-%load_ext autoreload
 sys.version
 
 
@@ -62,15 +59,14 @@ meta_ = meta[['celltype', 'sex', 'age', 'period']]
 meta_['period'][meta_['age'] < 2] = 'Infancy'
 curr_df = sub_df[meta['sample'].values]
 
-if mode == 'coarse':
-    group_df = {'period':[], 'celltype':[], 'Class':[], 'RNA':[]}
-    
-    #make into df
-    group_df['RNA'] = np.ravel(curr_df)
-    group_df['Class'] = np.repeat(curr_df.index.values,len(curr_df.columns.values))
-    group_df['period'] = meta_['period'].tolist()*len(curr_df.index)
-    group_df['celltype'] = [i.split('_')[1] for i in curr_df.columns.values.tolist()*len(curr_df.index)]
-    group_df = pd.DataFrame(group_df)
+group_df = {'period':[], 'celltype':[], 'Class':[], 'RNA':[]}
+
+#make into df
+group_df['RNA'] = np.ravel(curr_df)
+group_df['Class'] = np.repeat(curr_df.index.values,len(curr_df.columns.values))
+group_df['period'] = meta_['period'].tolist()*len(curr_df.index)
+group_df['celltype'] = [i.split('_')[1] for i in curr_df.columns.values.tolist()*len(curr_df.index)]
+group_df = pd.DataFrame(group_df)
 
 class_l = group_df['Class'].unique()
 cell_l = 'GLU', 'GABA'
