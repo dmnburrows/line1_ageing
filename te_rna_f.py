@@ -559,3 +559,73 @@ def inf_paired_comp(class_l, cell_l, period_l, group_df):
     comp_df['padj_sig'] = np.asarray(comp_df['p value']) < 0.05/5
     comp_df = pd.DataFrame(comp_df)
     return(comp_df)
+
+
+#=================================
+def plot_null(null_df, sig_df, xsc, ysc):
+#=================================
+
+    """
+    This function plots the null distribution of p values for each comparison, and 
+    returns a new dataframe labelling all FDR sig comparisons as background significant or not.
+
+    Inputs:
+        null_df = dataframe containing all null distribution p values
+        sig_df = dataframe containing all significant comparisons
+        xsc = x scale of plot
+        ysc = y scale of plot
+
+    Outputs:
+        final_df = dataframe containing all significant comparisons and whether they are background significant or not
+    """
+
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    pd.options.mode.chained_assignment = None
+
+    null_df['comb'] = null_df['celltype'] + '_' + null_df['Comparison']
+    sig_df['comb'] = sig_df['celltype'] + '_' + sig_df['Comparison']
+    cont = sig_df['comb'].unique()
+
+    #Visualise null distribution
+    plt.figure(figsize=(xsc, ysc))
+    plt.subplots_adjust(hspace=0.5)
+    final_df = pd.DataFrame()
+    for x,c in enumerate(cont):
+        ax = plt.subplot(int(len(cont)/3), 3, x + 1)
+        curr_data = null_df[null_df['comb']==c]['p value'].values
+        #drop nan
+        curr_data = curr_data[~np.isnan(curr_data)]
+        sub_df = sig_df[sig_df['comb'] == c]
+        #reset indeces
+        sub_df.reset_index(inplace=True)
+
+        #Loop through each comparison, Determine if significant, Group plot
+        thresh = np.percentile(curr_data, 5)
+
+        bins = np.geomspace(np.min(curr_data), np.max(curr_data), num=30)
+        import seaborn as sns
+        plt.title(c)
+        sns.set_theme(style="darkgrid")
+        plt.hist(curr_data, bins = bins)
+        plt.axvline(x=thresh, color='k', linestyle='--')
+        final_sig = np.array([])
+        for i in range(len(sub_df)):
+            if sub_df.loc[i]['p value'] <= thresh: 
+                sig_str = 'sig'
+                color = 'red'
+                linewidth = 5
+            else: 
+                sig_str = 'not_sig'
+                color = np.random.rand(3,)
+            final_sig = np.append(final_sig, sig_str)
+            plt.axvline(x=sub_df.loc[i]['p value'] , c=color, label = str(sub_df.loc[i]['Class']) + '_' + sig_str)
+            
+        #plt.legend in top left
+        plt.legend(bbox_to_anchor=(0, 1), loc=2, borderaxespad=0.)
+        plt.xscale('log')
+        sub_df['baseline_sig'] = final_sig
+        final_df = pd.concat([final_df, sub_df])
+    plt.show()
+
+    return(final_df)
