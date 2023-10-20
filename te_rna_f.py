@@ -524,7 +524,7 @@ def paired_test(s1, s2):
     return(stat,p)
 
 #==========================================================
-def inf_paired_comp(class_l, cell_l, period_l, group_df):
+def inf_paired_comp(class_l, cell_l, period_l, group_df, mode):
 #==========================================================
     """
     This function takes in a dataframe of RNA counts, and lists of gene classes, celltypes and age groups to loop over
@@ -535,6 +535,7 @@ def inf_paired_comp(class_l, cell_l, period_l, group_df):
         cell_l: list of celltypes to loop over
         period_l: list of age groups to loop over
         group_df: dataframe of RNA counts
+        mode (str): string indicating coarse or granular TE mode
 
     Outputs:
         comp_df: dataframe of p values for comparisons with Infancy groups
@@ -556,7 +557,9 @@ def inf_paired_comp(class_l, cell_l, period_l, group_df):
                 comp_df['p value'].append(paired_test(curr_df['RNA'][curr_df['period'] == 'Infancy'], per_df['RNA'].values)[1])
                 comp_df['statistic'].append(paired_test(curr_df['RNA'][curr_df['period'] == 'Infancy'], per_df['RNA'].values)[0])
 
-    comp_df['padj_sig'] = np.asarray(comp_df['p value']) < 0.05/5
+    if mode == 'coarse': scalar = 5
+    elif mode== 'granular': scalar = (5*len(class_l))
+    comp_df['padj_sig'] = np.asarray(comp_df['p value']) < 0.05/scalar
     comp_df = pd.DataFrame(comp_df)
     return(comp_df)
 
@@ -581,6 +584,7 @@ def plot_null(null_df, sig_df, xsc, ysc):
 
     import matplotlib.pyplot as plt
     import pandas as pd
+    import math
     pd.options.mode.chained_assignment = None
 
     null_df['comb'] = null_df['celltype'] + '_' + null_df['Comparison']
@@ -592,7 +596,7 @@ def plot_null(null_df, sig_df, xsc, ysc):
     plt.subplots_adjust(hspace=0.5)
     final_df = pd.DataFrame()
     for x,c in enumerate(cont):
-        ax = plt.subplot(int(len(cont)/3), 3, x + 1)
+        ax = plt.subplot(int(math.ceil(len(cont)/3)), 3, x + 1)
         curr_data = null_df[null_df['comb']==c]['p value'].values
         #drop nan
         curr_data = curr_data[~np.isnan(curr_data)]
