@@ -248,13 +248,18 @@ def rmsk_filter(df, promoter_cutoff, length_cutoff, n_start, n_end, family):
     assert sum(minus_filt ["repLeft"] < promoter_cutoff) == len(minus_filt), 'Promoter portions are too short'
 
     #Replace start/end of insertion with overlap range that reads must overlap with
+    plus_filt['full_End'] = plus_filt['genoEnd']
+    plus_filt['full_Start'] = plus_filt['genoStart']
     plus_filt['genoEnd'] = plus_filt['genoStart'] + n_end
     plus_filt['genoStart'] = plus_filt['genoStart'] - n_start
+
+    minus_filt['full_End'] = minus_filt['genoEnd']
+    minus_filt['full_Start'] = minus_filt['genoStart']
     minus_filt['genoStart'] = minus_filt['genoEnd'] - n_end
     minus_filt['genoEnd'] = minus_filt['genoEnd'] + n_start
 
-    te_plus = plus_filt[['genoName', 'genoStart', 'genoEnd', 'strand', 'repName', 'repFamily', 'repClass', 'length']]
-    te_minus = minus_filt[['genoName', 'genoStart', 'genoEnd', 'strand', 'repName','repFamily', 'repClass', 'length']]
+    te_plus = plus_filt[['genoName', 'genoStart', 'genoEnd', 'strand', 'repName', 'repFamily', 'repClass', 'length', 'full_Start', 'full_End']]
+    te_minus = minus_filt[['genoName', 'genoStart', 'genoEnd', 'strand', 'repName','repFamily', 'repClass', 'length', 'full_Start', 'full_End']]
     
     
     te_plus = te_plus.rename(columns={'genoName': 'Chromosome', 'genoStart':'Start', 
