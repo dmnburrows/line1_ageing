@@ -638,3 +638,49 @@ def plot_null(null_df, sig_df, xsc, ysc):
     plt.show()
 
     return(final_df)
+
+
+#===========================================================
+def bin_bed(df, binsize=1e3, upstream=5e4, downstream=5e4):
+#===========================================================
+    """
+    This function takes as input a bed file of gene loci, and calculates a 
+    binned bed file of positions up and downstream of the locus.
+    
+    Inputs:
+        df (dataframe): bed file, with start, end, chr, strand, TEtype, TEfamily columns
+        binsize (int): size of each bin in bed file
+        upstream (int): number of bps upstream of locus to start bins
+        downstream (int): number of bps downstream of locus to end bins
+    
+    Outputs:
+        cat_df (dataframe): bed file with binned positions
+    """
+    
+    
+    import pandas as pd
+    
+
+    cat_df=[]
+    for i in df.index:
+      if df.loc[i,'strand']=='+':
+        bins = df.loc[i,'start'] + np.arange(-upstream,downstream,binsize)
+      else:
+        bins = df.loc[i,'end'] + np.arange(upstream,-downstream,-binsize)
+
+      bins_df=pd.DataFrame(index=np.arange(-upstream,downstream,binsize))
+      bins_df['chr']=df.loc[i,'chr']
+      bins_df['start']=bins
+      bins_df['end']=bins+binsize
+      bins_df['TE_start']=df.loc[i,'start']
+      bins_df['TE_end']=df.loc[i,'end']
+      bins_df['strand']=df.loc[i,'strand']
+      bins_df['TE_type'] = df.loc[i,'TEtype']
+      bins_df['TE_family'] = df.loc[i,'TEfamily']
+      bins_df['TE_id'] = bins_df['chr']+'_'+bins_df['TE_family'].astype(str)+ '_' + bins_df['TE_start'].astype(str)+'_bin'+bins_df.index.astype(str)
+
+      cat_df.append(bins_df)
+
+    cat_df=pd.concat(cat_df).reset_index(drop=True)
+
+    return(cat_df)
