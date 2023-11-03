@@ -30,22 +30,32 @@ s_fig = '/cndd3/dburrows/FIGS/'
 sys.version
 
 
-def my_bedcov(samplepath):
+def my_bedcov(samplepath, qthresh=30):
   sample=samplepath.split('/')[-1]
   pref = 'L1'
   bam=f'/cndd3/dburrows/DATA/te/rna/PE.bam/{sample}/Aligned.sortedByCoord.out.bam'
   outdir=f'/cndd/dburrows/DATA/te/rna/PE.genomic.bins/{sample}/'
-
-  sense=f'bedtools coverage -sorted -counts -g /cndd/emukamel/DrachevaLiu_PsychENCODE_SCZ/L1_bins/hg38.genome -bed -s -a /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b {bam} > {outdir}{pref}_bins.{sample}.coverage.sense.bed'
-  antisense=f'bedtools coverage -sorted -counts -g /cndd/emukamel/DrachevaLiu_PsychENCODE_SCZ/L1_bins/hg38.genome -bed -S -a /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b {bam} > {outdir}{pref}_bins.{sample}.coverage.antisense.bed'
-
-  if os.path.exists(outdir):
-    os.system(sense)
-    os.system(antisense)
-  else:
+  
+  if os.path.exists(outdir) ==False:
     os.mkdir(outdir)
-    os.system(sense)
-    os.system(antisense)
+    
+  outfile=f'{pref}_bins.{sample}.q{qthresh}.sense.coverage.bed'
+  #filter multimapped reads, and also get reads pair aligning to sense strand  
+  cmd=f'/usr/bin/samtools view -q {qthresh} -M -f64 -b -L /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.merged.bed {bam} | '
+  cmd+=f' bedtools coverage -sorted -c -s -a /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b - > {outdir}{outfile} '
+  os.system(cmd)
+    
+  cmd=f'/usr/bin/samtools view -q {qthresh} -M -f128 -b -L /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.merged.bed {bam} | '
+  cmd+=f' bedtools coverage -sorted -c -S -a /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b - >> {outdir}{outfile} '
+  os.system(cmd)
+
+  outfile=f'{pref}_bins.{sample}.q{qthresh}.antisense.coverage.bed'
+  cmd=f'/usr/bin/samtools view -q {qthresh} -M -f64 -b -L /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.merged.bed {bam} {bam} | '
+  cmd+=f' bedtools coverage -sorted -c -S -a  /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b - > {outdir}{outfile} '
+  os.system(cmd)
+  cmd=f'/usr/bin/samtools view -q {qthresh} -M -f128 -b -L /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.merged.bed {bam} | '
+  cmd+=f' bedtools coverage -sorted -c -s -a /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b - >> {outdir}{outfile} '
+  os.system(cmd)
     
   print(f'Done {sample}')
   return 0
