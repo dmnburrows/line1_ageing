@@ -688,5 +688,67 @@ def bin_bed(df, binsize=1e3, upstream=5e4, downstream=5e4):
 
     return(cat_df)
 
+def count_genomeregion(meta, hg38, chroms, binsize, period, celltype, gene=None, fam=None):
+    
+    """
+    This function calculates the binned CPMs over the genome from ATEM mapped reads over a list of samples
+    returning a df of binsxchr for each sample.
+    
+    Inputs:
+        meta (df): dataframe of metadata 
+        hg38 (df): dataframe with chromosome lengths
+        chroms (list): a list of chromosome names
+        binsize (int): size of each genomic window
+        period (str): name of age period
+        celltype (str): GLU or GABA
+        gene (str): if slicing by gene name, select name
+        fam (str): if slicing by family, select name
+    
+    Outputs:
+        mean_dataframe (df): a dataframe of mean CPMs for each bin
+        hist_list (list): a list of dataframes, each containing CPMs for bins x chr
+    
+    """
+    import pandas as pd
+    
+    maxlen = int(hg38.loc['chr1'].values/binsize)
+    df = meta[(meta['period'] == period) & (meta['celltype']== celltype)]
+    ID = df['sample'].values
+    if len(df) == 0:
+        return('No samples found, please check period and celltype')
+    comp_df = pd.DataFrame()
+    hist_list = list(range(len(ID)))
+    for z,s in enumerate(ID):
+        parent_path = '/cndd/dburrows/DATA/te/rna/PE.counts/ATEM/'
+        prac = pd.read_csv(parent_path + '/Sample_' + s + '/ATEM_counts.csv', sep = '\t')
+        if gene!=None and fam!=None:
+            print('cannot select both family and gene to slice by, select one')
+            break
+        if gene!=None: prac = prac[prac['gene_id'] == gene]
+        elif fam!=None: prac = prac[prac['family_id'] == fam]
+        if len(prac) == 0: 
+            print('No counts returned, check for incorrect slicing')
+            break
+        
+        curr = prac#[file['genoName'] == curr_chr]
+        curr['centre'] = (curr['Start'] + curr['End']) / 2
+        curr['binned'] = (curr['centre']//binsize)*binsize/1e6
+        hist = curr.groupby(['Chromosome', 'binned']).sum()['CPM']
+        hist=hist.unstack()
+        hist = hist.loc[[c for c in chroms if c in hist.index]]
+        setdif = np.setdiff1d(np.arange(0, maxlen+2, 1), hist.columns.values)
+        while len(setdif) > 0:
+            for column in setdif:
+                hist[column] = np.nan
+                hist.fillna(0, inplace=True)
+                # Sort the columns in sequential order
+                hist = hist.reindex(sorted(hist.columns), axis=1)
+                setdif = np.setdiff1d(np.arange(0, maxlen+1, 1), hist.columns.values)
+        hist_list[z] = hist
+        
+    # Calculate the element-wise mean across all dataframes
+    mean_dataframe = pd.concat(hist_list).groupby(level=0).mean()
+    mean_dataframe = mean_dataframe.loc[chroms]
 
+    return(mean_dataframe, hist_list)
 
