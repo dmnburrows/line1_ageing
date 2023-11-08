@@ -547,7 +547,7 @@ def inf_paired_comp(class_l, cell_l, period_l, group_df, mode):
     """
     import pandas as pd
 
-    comp_df = {'celltype':[], 'Class':[], 'Comparison':[], 'p value':[], 'padj_sig': [], 'statistic':[]}
+    comp_df = {'celltype':[], 'Class':[], 'Comparison':[], 'p value':[], 'padj_sig': [], 'statistic':[], 'effect_size':[], 'l2fc':[]}
     for cl in class_l:
         for cell in cell_l:
             for p in period_l:
@@ -561,6 +561,9 @@ def inf_paired_comp(class_l, cell_l, period_l, group_df, mode):
                 comp_df['Comparison'].append('infancy' + '_' + p)
                 comp_df['p value'].append(paired_test(curr_df['RNA'][curr_df['period'] == 'Infancy'], per_df['RNA'].values)[1])
                 comp_df['statistic'].append(paired_test(curr_df['RNA'][curr_df['period'] == 'Infancy'], per_df['RNA'].values)[0])
+                comp_df['effect_size'].append((np.mean(curr_df['RNA'][curr_df['period'] == 'Infancy'].values) - np.mean(per_df['RNA'].values))/np.sqrt(((np.std(curr_df['RNA'][curr_df['period'] == 'Infancy'].values))**2 + (np.std(per_df['RNA'].values))**2)/2))
+                comp_df['l2fc'].append(np.log2(np.mean(per_df['RNA'].values/(np.mean(curr_df['RNA'][curr_df['period'] == 'Infancy'].values)))))
+
 
     if mode == 'coarse': scalar = 5
     elif mode== 'granular': scalar = (5*len(class_l))
@@ -589,7 +592,7 @@ def plot_null(null_df, sig_df, xsc, ysc):
 
     import matplotlib.pyplot as plt
     import pandas as pd
-    import math
+    import mathx
     pd.options.mode.chained_assignment = None
 
     null_df['comb'] = null_df['celltype'] + '_' + null_df['Comparison']
