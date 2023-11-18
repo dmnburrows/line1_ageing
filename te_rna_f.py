@@ -688,7 +688,7 @@ def bin_bed(df, binsize=1e3, upstream=5e4, downstream=5e4):
 
     return(cat_df)
 
-def count_genomeregion(meta, hg38, chroms, binsize, period, celltype, gene=None, fam=None):
+def count_genomeregion(meta, hg38, chroms, period, celltype, gene=None, fam=None):
     
     """
     This function calculates the binned CPMs over the genome from ATEM mapped reads over a list of samples
@@ -698,9 +698,8 @@ def count_genomeregion(meta, hg38, chroms, binsize, period, celltype, gene=None,
         meta (df): dataframe of metadata 
         hg38 (df): dataframe with chromosome lengths
         chroms (list): a list of chromosome names
-        binsize (int): size of each genomic window
         period (str): name of age period
-        celltype (str): GLU or GABA
+        celltype (str): GLU, GABA
         gene (str): if slicing by gene name, select name
         fam (str): if slicing by family, select name
     
@@ -711,6 +710,7 @@ def count_genomeregion(meta, hg38, chroms, binsize, period, celltype, gene=None,
     """
     import pandas as pd
     
+    binsize=1e6
     maxlen = int(hg38.loc['chr1'].values/binsize)
     df = meta[(meta['period'] == period) & (meta['celltype']== celltype)]
     ID = df['sample'].values
@@ -732,9 +732,12 @@ def count_genomeregion(meta, hg38, chroms, binsize, period, celltype, gene=None,
         
         curr = prac#[file['genoName'] == curr_chr]
         curr['centre'] = (curr['Start'] + curr['End']) / 2
-        curr['binned'] = (curr['centre']//binsize)*binsize/1e6
+        curr['binned'] = (curr['centre']//binsize)*binsize/binsize
         hist = curr.groupby(['Chromosome', 'binned']).sum()['CPM']
         hist=hist.unstack()
+        chr_miss = np.setdiff1d(chroms, hist.index)
+        empty = pd.DataFrame(np.nan, index = chr_miss, columns = hist.columns)
+        hist = pd.concat([hist, empty])
         hist = hist.loc[[c for c in chroms if c in hist.index]]
         setdif = np.setdiff1d(np.arange(0, maxlen+2, 1), hist.columns.values)
         while len(setdif) > 0:
@@ -751,4 +754,113 @@ def count_genomeregion(meta, hg38, chroms, binsize, period, celltype, gene=None,
     mean_dataframe = mean_dataframe.loc[chroms]
 
     return(mean_dataframe, hist_list)
+
+
+def ideogram(input_hist, hg38, chroms, centromeres, thresh=0):
+    
+    """
+    This function plots an ideogram with mgbp spacing. 
+    
+    Inputs:
+        input_hist (df): dataframe of binned RNA counts to plot
+        hg38 (df): dataframe with chromosome lengths
+        chroms (list): a list of chromosome names
+        centromeres (list): a lits of centromere positions
+        thresh (int): minimum value to plot
+   
+    
+    """
+    
+    import seaborn as sns
+    from matplotlib import pyplot as plt
+    import pandas as pd
+    
+    binsize=1e6
+    cmap=plt.cm.Reds.copy()
+    cmap.set_bad('white')
+    cmap.set_under('white') 
+    hist = input_hist.copy()
+    hist = hist.replace(0, np.nan)
+    fig,ax = plt.subplots(figsize=(10,10))
+    ax=sns.heatmap(hist,
+                cmap=cmap,
+                vmin = thresh,
+    #            vmin=hist.iloc[:-1].quantile(.5).min(),,
+    #                 vmax=150,
+                vmax=hist.iloc[:-1].quantile(.75).max(),
+               cbar_kws={'shrink':.5,'label':'n TEs per Mbp',
+                        'location':'right','anchor':(-2,.2)})#,
+                    # ax=ax)
+
+    ax.set_xlabel('Position (Mbp)', fontsize=20)
+    ax.set_xticks(np.arange(0,300,50),labels=np.arange(0,300,50))
+    plt.xticks(fontsize=15, rotation = 0)
+    plt.yticks(fontsize=15)
+
+    hg38_ = hg38.copy()
+    hg38_['length_mbp']=(hg38_.iloc[:,0]/binsize)+0.5
+    
+    ax.barh(y=np.arange(len(chroms))+0.5,width=hg38_.loc[chroms,'length_mbp'],
+           height=1,color=(0,0,0,0),edgecolor='k'
+          )
+    ax.set_ylabel('')
+    for ichrom,chrom in enumerate(chroms):
+        cu = centromeres[centromeres.index==chrom]
+        cu_start, cu_end = cu.iloc[0][1], cu.iloc[1][2]
+        #       print(ichrom+0.5,cu.iloc[i]['end'],cu.iloc[i]['start'])
+        ax.barh(y=ichrom+0.5,width=(cu_end-cu_start)/binsize,left=cu_start/binsize,
+               height=1,color='k',edgecolor='k'
+              )
+    #       ax.plot(cu.iloc[i][['start','end']]/binsize, [ichrom+.5,ichrom+.5], 'k-',markersize=5,linewidth=5,)
+
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=15)  # You can adjust the label size as needed (e.g., 15)
+    cbar.set_label('Mean CPM (?change?)', fontsize=20) 
+    
+    # Show the plot
+    #plt.savefig(s_code+'prac.svg', transparent=True)
+    plt.show()
+    
+    
+    
+    
+    
+def young_old_histcomp(young_group, old_group):
+    
+    """
+    This function takes a two lists of binned dataframes for different samples and performs MWU testing on each bin 
+    across samples to look for RNA expression differences at each bin. It returns a boolean mask of significant or non-significant
+    loci. 
+    
+    
+    Inputs:
+        young_group (list of df): list of dataframes for binned positions of young group
+        old_group (list of df): list of dataframes for binned positions of old group
+        
+    Outputs:
+        results_df (df): boolean mask of significant and non-significant regions
+    """
+    
+    import pandas as pd
+    
+    # Create an empty dataframe to store the results
+    results_df = pd.DataFrame(index=young_group[0].index, columns=young_group[0].columns)
+
+
+    # Iterate through each element (i.e., chromosome and bin)
+    for chromosome, bin_data in young_group[0].iterrows():
+        for bin, _ in bin_data.iteritems():
+            young_values = [df.loc[chromosome, bin] for df in young_group]
+            old_values = [df.loc[chromosome, bin] for df in old_group]
+
+    #         # Perform the Mann-Whitney U test
+            _, p_value = paired_test(young_values, old_values)
+
+            # Store True if significant (you can choose a significance threshold)
+            results_df.loc[chromosome, bin] = p_value < 0.05  # Change the threshold if needed
+    return(results_df)
+
+
+    
+
 
