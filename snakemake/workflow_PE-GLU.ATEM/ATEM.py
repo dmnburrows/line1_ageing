@@ -3,10 +3,10 @@
 #---------------------------------------
 import json
 import pandas as pd
-import pysam
 import sys
 import numpy as np
 import glob
+import pysam
 
 #Import your modules
 #---------------------------------------
@@ -21,7 +21,7 @@ bed_pl = pd.read_csv(js['bed_plus_path'], sep='\t', header=None)
 bed_pl.columns =['Chromosome', 'Start', 'End', 'Strand', 'gene_id', 'family_id', 'class_id', 'length', 'full_Start', 'full_End']
 bed_pl = bed_pl.drop(columns=['length'])
 bed_mi = pd.read_csv(js['bed_minus_path'],sep='\t', header=None)
-bed_mi.columns =['Chromosome', 'Start', 'End', 'Strand', 'gene_id', 'family_id', 'class_id', 'length', 'full_End', 'full_Start']
+bed_mi.columns =['Chromosome', 'Start', 'End', 'Strand', 'gene_id', 'family_id', 'class_id', 'length', 'full_Start', 'full_End']
 bed_mi = bed_mi.drop(columns=['length'])
 
 
