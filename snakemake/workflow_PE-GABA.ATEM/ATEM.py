@@ -10,7 +10,7 @@ import pysam
 
 #Import your modules
 #---------------------------------------
-sys.path.insert(1, '/cndd3/dburrows/CODE/te_ageing/')
+sys.path.insert(1, '/cndd3/dburrows/CODE/te_rna_ageing/')
 import te_rna_f as te
 sys.path.insert(1, '/cndd3/dburrows/CODE/admin_tools/')
 from admin_tools import admin_functions as adm
