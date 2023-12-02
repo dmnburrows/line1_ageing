@@ -74,7 +74,7 @@ count_df['CPM'] = count_df['Count'].values / total_reads * 1000000
 
 #Save counts matrix and bam indeces
 count_df.to_csv(snakemake.output.count_mat, sep='\t', index=False)
-np.save(snakemake.output.bam_ind,bam_ll)
+np.save(snakemake.output.bam_ind,np.asarray(bam_ll, dtype=object))
 
 #Make txt file of start sites to remove
 if len(bam_ll[0]) > 0:

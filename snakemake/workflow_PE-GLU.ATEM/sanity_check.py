@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pysam
 
-sys.path.insert(1, '/cndd3/dburrows/CODE/te_ageing/')
+sys.path.insert(1, '/cndd3/dburrows/CODE/te_rna_ageing/')
 import te_rna_f as te
 
 def check(check_bool, check_bam, sign):
