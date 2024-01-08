@@ -54,9 +54,9 @@ bam_ll = [[],[]] #empty list of lists to store curr_bam indices
 for x,par in enumerate(par_list):
     curr_bed = par[0]
     curr_bam = par[1]
-    curr_name = pd.read_csv(par[2], sep='\t', header=None)
-    assert len(curr_bam) == len(curr_name), 'Bam and metadata files not the same length'
-    curr_bam['UMI']=curr_name[0].values #Add UMI column to bam file
+#     curr_name = pd.read_csv(par[2], sep='\t', header=None)
+#     assert len(curr_bam) == len(curr_name), 'Bam and metadata files not the same length'
+#     curr_bam['UMI']=curr_name[0].values #Add UMI column to bam file
 
     #Loop through each chromosome
     chr_unq = np.unique(curr_bam['Chromosome'].values)

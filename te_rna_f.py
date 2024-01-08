@@ -168,18 +168,25 @@ def pysam_subset(file_path):
     import pysam
     import pandas as pd
     fin = pysam.AlignmentFile(file_path, 'rb')
-    out = {'Chromosome':[], 'Start': [], 'End': [], 'Strand': [], 'Flag': [] }
+    out = {'Chromosome':[], 'Start': [], 'End': [], 'Strand': [], 'Flag': [], 'UMI': [] }
     for x,read in enumerate(fin):
-        out['Chromosome'].append(read.reference_name)
-        out['Start'].append(read.reference_start)
-        out['End'].append(read.reference_end)
-        out['Flag'].append(read.flag)
-        if read.is_forward == True:
-            out['Strand'].append('+')
-        elif read.is_reverse == True:
-            out['Strand'].append('-')
+        #only retain read2
+        if read.is_read2 == True: 
+            out['UMI'].append(read.query_name + ':read2')
+            out['Chromosome'].append(read.reference_name)
+            out['Start'].append(read.reference_start)
+            out['End'].append(read.reference_end)
+            out['Flag'].append(read.flag)
+            if read.is_forward == True: out['Strand'].append('+')
+            elif read.is_reverse == True: out['Strand'].append('-')
+
+        #if read.is_read1 == True: out['UMI'].append(read.query_name + ':read1')
+        #elif read.is_read2 == True: out['UMI'].append(read.query_name + ':read2')
+
     out = pd.DataFrame(out)
     return(out)
+
+
 
 #================================================================
 def load_ATEM_family(ATEM_path, te, mode):
@@ -483,7 +490,11 @@ def multimap_stats(path):
     count=0
     test=[]
     for x,read in enumerate(fin):
-        test = np.append(test,read.query_name)
+        
+        if read.is_read1 == True: qname = read.query_name + ':read2'
+        elif read.is_read2 == True: qname = read.query_name + ':read2'
+
+        test = np.append(test,qname)
         count+=1
 
     unq = np.unique(test, return_counts=True)
