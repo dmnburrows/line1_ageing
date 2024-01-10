@@ -171,14 +171,14 @@ def pysam_subset(file_path):
     out = {'Chromosome':[], 'Start': [], 'End': [], 'Strand': [], 'Flag': [], 'UMI': [] }
     for x,read in enumerate(fin):
         #only retain read2
-        if read.is_read2 == True: 
-            out['UMI'].append(read.query_name + ':read2')
-            out['Chromosome'].append(read.reference_name)
-            out['Start'].append(read.reference_start)
-            out['End'].append(read.reference_end)
-            out['Flag'].append(read.flag)
-            if read.is_forward == True: out['Strand'].append('+')
-            elif read.is_reverse == True: out['Strand'].append('-')
+        #if read.is_read2 == True: 
+        out['UMI'].append(read.query_name)
+        out['Chromosome'].append(read.reference_name)
+        out['Start'].append(read.reference_start)
+        out['End'].append(read.reference_end)
+        out['Flag'].append(read.flag)
+        if read.is_forward == True: out['Strand'].append('+')
+        elif read.is_reverse == True: out['Strand'].append('-')
 
         #if read.is_read1 == True: out['UMI'].append(read.query_name + ':read1')
         #elif read.is_read2 == True: out['UMI'].append(read.query_name + ':read2')

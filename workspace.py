@@ -14,8 +14,9 @@ import glob
 
 def process_directory(d):
     # The commands to be executed for each directory
-    run = f""" bedtools intersect -s -sorted -wb -b {bam_path}/{d}/Aligned.sortedByCoord.out.bam -a /cndd3/dburrows/DATA/annotations/rmsk/rmsk.hg38.filt-5ptrim.merge.L1HS_all.canon.sorted.bed \
-    > {d}/L1HS_all.bam
+    sub_d=os.path.basename(d)
+    run = f""" bedtools intersect -s -sorted -wb -b {bam_path}/{sub_d}/Aligned.sortedByCoord.out.bam -a /cndd3/dburrows/DATA/annotations/rmsk/rmsk.hg38.filt-5ptrim.merge.L1HS_all.canon.sorted.bed \
+    > {path}/{sub_d}/L1HS_all.bam
     """
     get_ipython().run_cell_magic('bash', '', run)
     # Additional code for each directory can be added here

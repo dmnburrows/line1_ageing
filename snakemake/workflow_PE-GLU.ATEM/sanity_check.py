@@ -25,3 +25,7 @@ check(bam_mi.iloc[bam_ll[1]],out_bam, '-')
 complete='All reads accounted for'
 print(complete)
 np.save(snakemake.output.log_complete, complete)
+
+
+assert len(out_bam[out_bam['Strand'] == '+']) == len(bam_ll[0]), 'Merged BAM file is missing some plus strand reads'
+AssertionError: Merged BAM file is missing some plus strand reads

@@ -69,13 +69,30 @@ rule splice_removal:
         splice_bam_pl=config['out_path']+"/{ID}/plus.5pfilt_withsplice.bam",
         splice_bam_mi=config['out_path']+"/{ID}/minus.5pfilt_withsplice.bam"
     output:
-        nosplice_bam_pl=config['out_path']+"/{ID}/plus.5pfilt.bam",
-        nosplice_bam_mi=config['out_path']+"/{ID}/minus.5pfilt.bam"
+        nosplice_bam_pl=config['out_path']+"/{ID}/plus.5pfilt.withr1.bam",
+        nosplice_bam_mi=config['out_path']+"/{ID}/minus.5pfilt.withr1.bam"
     run:
         shell("samtools view -h {input.splice_bam_pl} | awk '/^@/ {{print;next}} !($6 ~ /N/)' | samtools view -bo {output.nosplice_bam_pl}")
         shell("samtools index {output.nosplice_bam_pl}")
         shell("samtools view -h {input.splice_bam_mi} | awk '/^@/ {{print;next}} !($6 ~ /N/)' | samtools view -bo {output.nosplice_bam_mi}")
         shell("samtools index {output.nosplice_bam_mi}")
+        
+        
+#=========================
+rule remove_read1:
+#=========================
+    input:
+        r1_bam_pl=config['out_path']+"/{ID}/plus.5pfilt.withr1.bam",
+        r1_bam_mi=config['out_path']+"/{ID}/minus.5pfilt.withr1.bam"
+    output:
+        bam_pl=config['out_path']+"/{ID}/plus.5pfilt.bam",
+        bam_mi=config['out_path']+"/{ID}/minus.5pfilt.bam"
+        
+    run:
+        shell("samtools view -b -F 0x40 {input.r1_bam_pl} > {output.bam_pl}")
+        shell("samtools index {output.bam_plus}")
+        shell("samtools view -b -F 0x40 {input.r1_bam_mi} > {output.bam_mi}")
+        shell("samtools index {output.bam_mi}")
 
 
 # Obtain metadata from filtered bam files for remapping after ATEM
