@@ -5,64 +5,41 @@ import sys
 import os
 import glob
 import pandas as pd
-from matplotlib import pyplot as plt
 import numpy as np
-from multiprocessing import Pool
-from tqdm import tqdm
 
 
-#Import your modules
-#---------------------------------------
-import te_rna_f as ter
-sys.path.insert(1, '/cndd3/dburrows/CODE/admin_tools/')
-from admin_tools import admin_functions as adm
-
-# Define paths
-#----------------------------------------------------------------------
-l_code = '/Users/dominicburrows/Dropbox/PhD/Analysis/my_scripts/GitHub/'
-l_data = '/Users/dominicburrows/Dropbox/PhD/analysis/Project/'
-l_fig = '/Users/dominicburrows/Dropbox/PhD/figures/'
-
-s_code = '/cndd3/dburrows/CODE/'
-s_data = '/cndd3/dburrows/DATA/'
-s_fig = '/cndd3/dburrows/FIGS/'
-
-sys.version
+#use pool multiprocessing
+import multiprocessing
+import glob
 
 
-def my_bedcov(samplepath, qthresh=30):
-  sample=samplepath.split('/')[-1]
-  pref = 'SINE'
-  bam=f'/cndd3/dburrows/DATA/te/rna/PE.bam/{sample}/Aligned.sortedByCoord.out.bam'
-  outdir=f'/cndd/dburrows/DATA/te/rna/PE.genomic.bins/{sample}/'
-  
-  if os.path.exists(outdir) ==False:
-    os.mkdir(outdir)
+def process_directory(d):
+    run = f"""
+    echo $start
+    samtools view -b -F 0x40 {in_path}/{d}/Aligned.sortedByCoord.out.bam > {out_path}/{d}/Aligned.sortedByCoord.out.r2.bam
+    echo $samtools filter r2
+    samtools index {out_path}/{d}/Aligned.sortedByCoord.out.r2.bam
+    samtools view -b -F 0x100 {out_path}/{d}/Aligned.sortedByCoord.out.r2.bam > {out_path}/{d}/Aligned.sortedByCoord.out.r2.unq.bam
+    echo $
+    samtools index {out_path}/{d}/Aligned.sortedByCoord.out.r2.unq.bam
+    bedtools coverage -s -a /cndd3/dburrows/DATA/annotations/rmsk/l1hs_tss_bind.bed -b {out_path}/{d}/Aligned.sortedByCoord.out.r2.unq.bam > {out_path}/{d}/l1hs_unq.cov 
+    bedtools coverage -s -a /cndd3/dburrows/DATA/annotations/rmsk/l1hs_tss_bind.bed -b {out_path}/{d}/Aligned.sortedByCoord.out.r2.bam > {out_path}/{d}/l1hs.cov 
+    """
+
+    get_ipython().run_cell_magic('bash', '', run)
+    print('Done')
     
-  outfile=f'{pref}_bins.{sample}.q{qthresh}.sense.coverage.bed'
-  #filter multimapped reads, and also get reads pair aligning to sense strand  
-  cmd=f'/usr/bin/samtools view -q {qthresh} -M -f64 -b -L /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.merged.bed {bam} | '
-  cmd+=f' bedtools coverage -sorted -c -s -a /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b - > {outdir}{outfile} '
-  os.system(cmd)
+
+#this section shows what default arguments will be run if just executing the script
+if __name__ == "__main__":
+    in_path = '/cndd3/dburrows/DATA/te/rna/PE.bam/'
+    out_path ='/cndd/dburrows/DATA/te/rna/PE.counts/l1hs_count_bind/'
+    dir_list = [os.path.basename(i) for i in glob.glob(in_path + '*Samp*')]
     
-  cmd=f'/usr/bin/samtools view -q {qthresh} -M -f128 -b -L /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.merged.bed {bam} | '
-  cmd+=f' bedtools coverage -sorted -c -S -a /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b - >> {outdir}{outfile} '
-  os.system(cmd)
+    # Create a pool of 10 worker processes
+    with multiprocessing.Pool(1) as pool:
+        # Map the process_directory function to each item in dir_list
+        pool.map(process_directory, dir_list)
 
-  outfile=f'{pref}_bins.{sample}.q{qthresh}.antisense.coverage.bed'
-  cmd=f'/usr/bin/samtools view -q {qthresh} -M -f64 -b -L /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.merged.bed {bam} {bam} | '
-  cmd+=f' bedtools coverage -sorted -c -S -a  /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b - > {outdir}{outfile} '
-  os.system(cmd)
-  cmd=f'/usr/bin/samtools view -q {qthresh} -M -f128 -b -L /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.merged.bed {bam} | '
-  cmd+=f' bedtools coverage -sorted -c -s -a /cndd/dburrows/DATA/te/rna/PE.genomic.bins/{pref}_bins.sorted.bed -b - >> {outdir}{outfile} '
-  os.system(cmd)
+    print("All tasks completed.")
     
-  print(f'Done {sample}')
-  return 0
-
-
-samples=glob.glob('/cndd3/dburrows/DATA/te/rna/PE.bam/Sample*')
-#creat pool of parallel worker processes
-with Pool(20) as p:
-  #imap applies function in parallel
-  x=list(tqdm(p.imap(my_bedcov, samples),total=len(samples)))
