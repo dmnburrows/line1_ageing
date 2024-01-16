@@ -874,4 +874,42 @@ def young_old_histcomp(young_group, old_group):
 
     
 
+def l1hs_sigtest(group1, group2, df, ref, alpha):
+    import pandas as pd
+    from statsmodels.stats.multitest import multipletests
+
+    
+    cell = ['GLU', 'GABA']
+    gl_sig_v, gl_stat_v, gl_l2fc_v, ga_sig_v, ga_stat_v, ga_l2fc_v = [],[],[],[],[],[]
+    #Calculate significance
+    for i in ref.index.values:
+        for c in cell:
+            curr_ = df[(df['Index']==i) & (df['Cell']==c)]
+            stat, pv = paired_test(curr_[curr_['Age'] == group1]['CPM'], curr_[curr_['Age'] == group2]['CPM'])
+            log2fc =  np.log2((np.mean(curr_[curr_['Age'] == group1]['CPM']) + 1)/(np.mean(curr_[curr_['Age'] == group2]['CPM'])+1))
+            if c == 'GLU':
+                gl_sig_v.append(pv)
+                gl_l2fc_v.append(log2fc)
+            elif c == 'GABA':
+                ga_sig_v.append(pv)
+                ga_l2fc_v.append(log2fc)
+
+    ref['GLU_sig'] = gl_sig_v
+    ref['GLU_log2fc'] = gl_l2fc_v
+    ref['GABA_sig'] = ga_sig_v
+    ref['GABA_log2fc'] = ga_l2fc_v
+
+    # Apply FDR correction
+    gl_sig_v = np.asarray(gl_sig_v)
+    gl_sig_v = np.nan_to_num(gl_sig_v, nan=1)
+    gl_sig_v_corrected = multipletests(gl_sig_v, alpha=alpha, method='fdr_bh')[0]
+    ga_sig_v = np.asarray(ga_sig_v)
+    ga_sig_v = np.nan_to_num(ga_sig_v, nan=1)
+    ga_sig_v_corrected = multipletests(ga_sig_v, alpha=alpha, method='fdr_bh')[0]
+
+    # Add corrected p-values to the ref DataFrame
+    ref['GLU_significant'] = gl_sig_v_corrected
+    ref['GABA_significant'] = ga_sig_v_corrected
+
+    return(ref)
 
