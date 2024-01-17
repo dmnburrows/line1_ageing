@@ -874,11 +874,11 @@ def young_old_histcomp(young_group, old_group):
 
     
 
-def l1hs_sigtest(group1, group2, df, ref, alpha):
+def l1hs_sigtest(group1, group2, df, inp_ref, alpha):
     import pandas as pd
     from statsmodels.stats.multitest import multipletests
 
-    
+    ref = inp_ref.copy()
     cell = ['GLU', 'GABA']
     gl_sig_v, gl_stat_v, gl_l2fc_v, ga_sig_v, ga_stat_v, ga_l2fc_v = [],[],[],[],[],[]
     #Calculate significance
@@ -886,7 +886,7 @@ def l1hs_sigtest(group1, group2, df, ref, alpha):
         for c in cell:
             curr_ = df[(df['Index']==i) & (df['Cell']==c)]
             stat, pv = paired_test(curr_[curr_['Age'] == group1]['CPM'], curr_[curr_['Age'] == group2]['CPM'])
-            log2fc =  np.log2((np.mean(curr_[curr_['Age'] == group1]['CPM']) + 1)/(np.mean(curr_[curr_['Age'] == group2]['CPM'])+1))
+            log2fc =  np.log2((np.mean(curr_[curr_['Age'] == group2]['CPM']) + 1)/(np.mean(curr_[curr_['Age'] == group1]['CPM'])+1))
             if c == 'GLU':
                 gl_sig_v.append(pv)
                 gl_l2fc_v.append(log2fc)
@@ -910,6 +910,8 @@ def l1hs_sigtest(group1, group2, df, ref, alpha):
     # Add corrected p-values to the ref DataFrame
     ref['GLU_significant'] = gl_sig_v_corrected
     ref['GABA_significant'] = ga_sig_v_corrected
+    ref['GLU_sig_adj'] = gl_sig_v
+    ref['GABA_sig_adj'] =ga_sig_v
 
     return(ref)
 
