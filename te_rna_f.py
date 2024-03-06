@@ -431,7 +431,7 @@ def te_group_coarse(df, meta, name):
 
     ind = [x for x,i in enumerate(df.index) if name in i]#l1 ind
     cpm_v = [np.mean(df.iloc[ind][i])for i in meta['sample'].values]
-    age_v = meta['AGEYEARS'].values
+    age_v = meta['age'].values
 
     return(cpm_v, age_v)
 
@@ -462,7 +462,7 @@ def te_group_el(df, meta, name):
     ind = [x for x,i in enumerate(df.index) if name in i]#l1 ind
     cpm_v = [df.iloc[ind][i] for i in meta['sample'].values]
     cpm_df = pd.DataFrame(cpm_v).T
-    age_v = meta['AGEYEARS'].values
+    age_v = meta['age'].values
 
     return(cpm_df, age_v)
 
